@@ -17,6 +17,12 @@
   <profiles>
     <profile>
       <id>frontend-no-prebuilt</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+        <property>
+          <name>devBuild-no-prebuilt</name>
+        </property>
+      </activation>
       <build>
         <plugins>
           <plugin>
@@ -37,11 +43,11 @@
                 </configuration>
               </execution>
               <execution>
-                <id>eslint</id>
+                <id>esline</id>
                 <goals>
                   <goal>exec</goal>
                 </goals>
-                <phase>test</phase>
+                <phase>validate</phase>
                 <configuration>
                   <executable>npm</executable>
                   <arguments>
@@ -55,12 +61,11 @@
                 <goals>
                   <goal>exec</goal>
                 </goals>
-                <phase>generate-resources</phase>
+                <phase>compile</phase>
                 <configuration>
-                  <executable>npx</executable>
+                  <executable>node_modules/gulp/bin/gulp.js</executable>
                   <arguments>
-                    <argument>gulp</argument>
-                    <argument>paella-opencast:build</argument>
+                    <argument>paella-opencast:build.dce</argument>
                   </arguments>
                 </configuration>
               </execution>
@@ -74,7 +79,10 @@
     <profile>
       <id>frontend</id>
       <activation>
-        <activeByDefault>true</activeByDefault>
+        <activeByDefault>false</activeByDefault>
+        <property>
+            <name>devBuild</name>
+        </property>
       </activation>
       <build>
         <plugins>
@@ -100,7 +108,7 @@
                   <goal>npm</goal>
                 </goals>
                 <configuration>
-                  <arguments>ci</arguments>
+                  <arguments>ci --loglevel silly</arguments>
                 </configuration>
               </execution>
               <execution>
@@ -120,7 +128,7 @@
                   <goal>gulp</goal>
                 </goals>
                 <configuration>
-                  <arguments>paella-opencast:build</arguments>
+                  <arguments>paella-opencast:build.dce</arguments>
                 </configuration>
               </execution>
             </executions>
@@ -132,6 +140,9 @@
 
   <build>
     <plugins>
+      <!-- Opencast 9x/10x upstream Paella build strategy (target/gulp dir) -->
+      <!-- DCE copies the build back to ./build/paella-opencast which is checked in. -->
+      <!-- The DCE paella-player jar is built from DCE ./build/paella-opencast  -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
@@ -150,7 +161,7 @@
               <outputDirectory>${basedir}/target/classes/ui/</outputDirectory>
               <resources>
                 <resource>
-                  <directory>./target/gulp/paella-opencast</directory>
+                  <directory>./build/paella-opencast</directory>
                   <includes>
                     <include>**</include>
                   </includes>
@@ -170,7 +181,9 @@
             <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
             <Build-Number>${buildNumber}</Build-Number>
             <Private-Package>ui.*</Private-Package>
-            <Http-Alias>/paella/ui</Http-Alias>
+            <!-- #DCE changed alias path -->
+            <!-- Http-Alias>/paella/ui</Http-Alias -->
+            <Http-Alias>/engage/player</Http-Alias>
             <Http-Classpath>/ui</Http-Classpath>
             <Http-Welcome>watch.html</Http-Welcome>
           </instructions>

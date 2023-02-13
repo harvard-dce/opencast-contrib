@@ -1,0 +1,1 @@
+document.querySelector('#message').textContent = 'Hey, loaded!';

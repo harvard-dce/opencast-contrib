@@ -1,0 +1,35 @@
+{
+  "name": "dce-player-router",
+  "version": "1.1.0",
+  "description": "Minimal module for the browser that sends seeking parameters from a hashtag route to a callback.",
+  "main": "index.js",
+  "scripts": {
+    "test": "make test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/harvard-dce/player-router.git"
+  },
+  "keywords": [],
+  "author": {
+    "name": "Jim Kang"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/harvard-dce/player-router/issues"
+  },
+  "homepage": "https://github.com/harvard-dce/player-router",
+  "devDependencies": {
+    "browserify": "^12.0.1",
+    "smokestack": "^3.4.1",
+    "tap-closer": "^1.0.0",
+    "tape": "^3.0.3"
+  },
+  "dependencies": {},
+  "readme": "player-router\n=============\n\nMinimal module for the browser that handles hashtag routing for the Harvard DCE video player. (Currently only needs to handle seek-related routing.)\n\nIntended for use with Browserify.\n\nInstallation\n------------\n\n    npm install player-router\n\nUsage\n-----\n\n\n    var initPlayerRouter = require('player-router');\n\n    initPlayerRouter({\n      seeking: {\n        seekParamName: 'range',\n        seekResponder: seekToTime\n      }\n    });\n\n    function seekToTime(startTime, endTime) {\n      mediaElement.currentTime = startTime;\n    }\n\nNow when the user goes to yourserver.com/yourpath#range=10 in the browser, `seekToTime` will be called with 10 as the startTime.\n\nIf the user goes to yourserver.com/yourpath#range=10-16, 10 and 16 will be passed to seekToTime.\n\nTests\n-----\n\nRun tests with `make test`.\n\nRun Chrome tests with `make test-chrome` and run Firefox tests with `make test-firefox`.\n\nLicense\n-------\n\nThe MIT License (MIT)\n\nCopyright (c) 2016 President and Fellows of Harvard College\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in\nall copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN\nTHE SOFTWARE.\n",
+  "readmeFilename": "README.md",
+  "_id": "dce-player-router@1.1.0",
+  "_shasum": "539bad89812b6ce4a6728b3376443a89dec81fd7",
+  "_resolved": "https://registry.npmjs.org/dce-player-router/-/dce-player-router-1.1.0.tgz",
+  "_from": "https://registry.npmjs.org/dce-player-router/-/dce-player-router-1.1.0.tgz"
+}
