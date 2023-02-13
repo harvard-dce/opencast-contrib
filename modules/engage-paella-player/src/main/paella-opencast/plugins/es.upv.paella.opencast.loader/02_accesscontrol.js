@@ -28,6 +28,10 @@ Extend paella.AccessControl and implement the checkAccess method:
 */
 /*global paella_DeferredResolved*/
 
+// #DCE OPC-357, OPC-624 override me info structure for OCv5x
+// #DCE OPC-624 upgrade, all DCE-OC reads can get episode.json,
+// the DCE auth is handled during parse
+
 class OpencastAccessControl extends paella.AccessControl {
 
   constructor() {
@@ -40,9 +44,8 @@ class OpencastAccessControl extends paella.AccessControl {
   getName() { return 'es.upv.paella.opencast.OpencastAccessControl'; }
 
   canRead() {
-    return paella.opencast.getEpisode()
-    .then( () => { return paella_DeferredResolved(true); } )
-    .catch(() => { return paella_DeferredResolved(false); } );
+    // #DCE auth, all users can read, auth handled during read parse
+    return paella_DeferredResolved(true);
   }
 
   canWrite() {
@@ -89,8 +92,10 @@ class OpencastAccessControl extends paella.AccessControl {
           function(me) {
             var isAnonymous = ((me.roles.length == 1) && (me.roles[0] == me.org.anonymousRole));
             self._userData = {
-              username: me.user.username,
-              name: me.user.name || me.user.username || '',
+              // #DCE OPC-357, OPC-624, override for me.username OCv5x
+              username: me.username || me.user.username,
+              name: me.name || me.username || me.user.name || me.user.username || '',
+              // end #DCE override
               avatar: paella.utils.folders.resources() + '/images/default_avatar.png',
               isAnonymous: isAnonymous
             };

@@ -19,6 +19,10 @@
  *
  */
 
+// #DCE OPC-624 override
+// File: engage-paella-player/src/main/paella-opencast/plugins/es.upv.paella.opencast.loader/01_prerequisites.js
+// Override for DCE auth and getting series from engage search (vs series remote)
+
 class Opencast {
 
   constructor() {
@@ -56,11 +60,34 @@ class Opencast {
         var episodeId = paella.utils.parameters.get('id');
         paella.utils.ajax.get({url:'/search/episode.json', params:{'id': episodeId}},
           function(data, contentType, code) {
-            if (data['search-results'].result) {
-              self._episode = data['search-results'].result;
-              resolve(self._episode);
+            // START #DCE insert  ---- 1 ----
+            //#DCE auth result check
+            var jsonData = data;
+            if (typeof (jsonData) == 'string') jsonData = JSON.parse(jsonData);
+            // test if result is Harvard auth or episode data
+            if (! self.isHarvardDceAuthOk(jsonData)) {
+              reject(jsonData);
+              return;
+              // #DCE no more action here the redirect in the reject path reloads page
             }
-            else {
+            // #DCE end auth check
+            // #DCE verify that results returned at least one episode
+            var totalItems = parseInt(data[ 'search-results'].total);
+            if (totalItems === 0) {
+              // #DCE OPC-374 allow catch to show the message to user
+              //self.showLoadErrorMessage(paella.utils.dictionary.translate("No
+              // recordings found for episode id") + ": \"" + episodeId + "\"");
+              // #DCE OPC-374 passing magic number 0 for no results found
+              reject(totalItems);
+            }
+            // #DCE end total check
+            if (data[ 'search-results'].result) {
+              self._episode = data[ 'search-results'].result;
+              // #DCE set logger helper
+              self.setHarvardDCEresourceId(self._episode);
+              resolve(self._episode);
+              // END #DCE insert ---- 1 ----
+            } else {
               reject();
             }
           },
@@ -71,7 +98,6 @@ class Opencast {
       }
     });
   }
-
 
   getSeries() {
     var self = this;
@@ -130,6 +156,104 @@ class Opencast {
       });
     });
   }
+
+  // ------------------------------------------------------------
+  // #DCE(naomi): start of dce auth addition
+  isHarvardDceAuthOk(jsonData) {
+
+    // check that search-results are ok
+    var resultsAvailable = (jsonData !== undefined) &&
+    (jsonData[ 'search-results'] !== undefined) &&
+    (jsonData[ 'search-results'].total !== undefined);
+
+    // if search-results not ok, maybe auth-results?
+    if (resultsAvailable === false) {
+      var authResultsAvailable = (jsonData !== undefined) &&
+      (jsonData[ 'dce-auth-results'] !== undefined) &&
+      (jsonData[ 'dce-auth-results'].dceReturnStatus !== undefined);
+
+      // auth-results not present, some other error
+      if (authResultsAvailable === false) {
+        paella.debug.log('Seach failed, response:  ' + jsonData);
+        var message = 'Cannot access specified video; authorization failed (' + jsonData + ')';
+        paella.messageBox.showError(message);
+        $(document).trigger(paella.events.error, {
+          error: message
+        });
+      }
+      // (MATT-2212) DCE auth redirect is performed within the getEpisode()
+      // failure path (via isHarvardDceAuthRedirect below)
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  // This method is used when getEpisode fails in order to determine if
+  // auth redirect is possible (MATT-2212)
+  doHarvardDceAuthRedirect(jsonData) {
+    if (jsonData && jsonData[ 'dce-auth-results']) {
+      var authResult = jsonData[ 'dce-auth-results'];
+      if (authResult && authResult.dceReturnStatus) {
+        var returnStatus = authResult.dceReturnStatus;
+        // #DCE OPC-554-new-auth 404 is returned when the course is not in
+        // the auth db or there are no rules defined
+        // for the requested resource in the auth db.
+        if (('401' == returnStatus || '403' == returnStatus || '404' == returnStatus) && authResult.dceLocation) {
+          window.location.replace(authResult.dceLocation);
+        } else {
+          var message = 'Cannot access specified video; authorization failed (' + authResult.dceErrorMessage + ')';
+          paella.debug.log(message);
+          paella.messageBox.showError(message);
+          $(document).trigger(paella.events.error, {
+            error: message
+          });
+        }
+      }
+    }
+  }
+
+  // #DCE(naomi): end of dce auth addition
+  // ------------------------------------------------------------
+  // #DCE(gregLogan): start of get resourceId for usertracking 'logging helper code'
+  setHarvardDCEresourceId(result) {
+    var type, offeringId = '';
+    if (result != undefined) {
+      if (result.dcIsPartOf != undefined) {
+        offeringId = result.dcIsPartOf.toString();
+      }
+      if (result.dcType != undefined) {
+        type = result.dcType.toString();
+      }
+    }
+    if (offeringId && type) {
+      paella.opencast.resourceId = (
+        offeringId.length >= 11
+          ? (
+            '/' + offeringId.substring(0, 4)
+            + '/' + offeringId.substring(4, 6)
+            + '/' + offeringId.substring(6, 11)
+            + '/'
+          )
+          : ''
+      ) + type;
+    } else {
+      paella.opencast.resourceId = '';
+    }
+  }
+
+  // #DCE(greg): end of usertracking param set helper
+  // ------------------------------------------------------------
+  // ------------------------------------------------------------
+  //#DCE start show not found error
+  showLoadErrorMessage(message) {
+    paella.messageBox.showError(message);
+    $(document).trigger(paella.events.error, {
+      error: message
+    });
+  }
+  //#DCE end show not found error
+  // -----------------------------------------------------------
 }
 
 // Patch to work with MH jetty server.
@@ -169,5 +293,3 @@ paella.utils.ajax.send = function(type,params,onSuccess,onFail) {
     });
   }
 };
-
-

@@ -18,6 +18,22 @@
  * the License.
  *
  */
+
+// #DCE OPC-624 override
+// File: engage-paella-player/src/main/paella-opencast/plugins/es.upv.paella.opencast.loader/03_oc_search_converter.js
+// keep patch: #DCE OPC-393 add HLS track role attribute in addition to master attribute boolean
+// keep patch: #DCE OPC-499 protection for attachmentless mediapackages
+// keep patch: #DCE OPC-389 special audio tag fix when multi video with audio on only presenter
+// keep patch: #DCE OPC-393 always make "presenter" the preferred audio track
+// keep patch: #DCE OPC-374 fall back lang
+// keep patch: #DCE OPC-629 DCE hook for automatic captions, chooses 1 set of captions (the last attached)
+// keep patch: #DCE OPC-351 Prefer attachment captions over catalog captions when both are found
+// keep patch: #DCE OPC-525 Add flexible flavor param for presenter slides fallback
+// keep patch: #DCE OPC-354 DCE uploads to presenter Preview, prefer presenter over presentation preview
+// new patch: OC typo: tags = [currentTrack.tags.tag] should be tags = currentTrack.tags.tag (see inline comment below)
+// retired patch: #DCE OPC-357 hasSpecialDceMasterHlsIndexTrack, replaced with upstream hasAdaptiveMasterTrack
+// retried patch: #DCE OPC-357-HLS-VOD
+
 class OpencastToPaellaConverter {
 
   constructor() {
@@ -125,7 +141,7 @@ class OpencastToPaellaConverter {
     var res = new Array(0,0);
     // HLS-VOD
     if (track.video instanceof Object) {
-      if (track.video.resolution) {
+      if (!track.master) {
         res = track.video.resolution.split('x');
       }
       // HLS-VOD- parse sub-video data from the adaptive "master" tagged track
@@ -153,11 +169,15 @@ class OpencastToPaellaConverter {
     }
 
     var source = {
+      //#DCE OPC-393 load presenter as master role (i.e. main audio track)
+      role: track.role,
+      // #DCE -- end
       master: (track.master === true), // HLS-VOD - adaptive master manifest
       src:  src,
       isLiveStream: (track.live === true)
     };
 
+    // #DCE does this need to be replaced with if(track.video) { ?
     if(track.mimetype != 'audio/m4a') {
       source.mimetype = track.mimetype;
       source.res = {w:res[0], h:res[1]};
@@ -240,9 +260,21 @@ class OpencastToPaellaConverter {
    */
   getStreamFromFlavor(episode, flavor, subFlavor) {
     let hasAdaptiveMasterTrack = false;
-    var currentStream = { sources:{}, preview: '', content: flavor };
+    // #DCE OPC-357
+    var currentStream = {
+      sources:{},
+      preview: '',
+      content: flavor,
+      dceBlankAudio: false // #DCE OPC-389
+    };
 
     var tracks = episode.mediapackage.media.track;
+    // #DCE OPC-499 protection for attachmentless mediapackages
+    // TODO: make patch for upstream
+    if (!episode.mediapackage.attachments) {
+      episode.mediapackage.attachments = {};
+      episode.mediapackage.attachments.attachment = [];
+    }
     var attachments = episode.mediapackage.attachments.attachment;
     if (!(tracks instanceof Array)) { tracks = tracks ? [tracks] : []; }
     if (!(attachments instanceof Array)) { attachments = attachments ? [attachments] : []; }
@@ -255,6 +287,38 @@ class OpencastToPaellaConverter {
           if ( !(currentStream.sources[sourceType]) || !(currentStream.sources[sourceType] instanceof Array)){
             currentStream.sources[sourceType] = [];
           }
+          // #DCE --- START ------------------
+          // #DCE OPC-389 special audio tag fix for old publications with
+          // audio on presenter but a blank audio on presentation track.
+          // From config: audio required tag ~= 'multiaudio', audio tag
+          // required flavor ~= 'presentation/delivery'
+          let dceAudioTag = paella.player.config.dceRequiredAudioTag;
+          let dceAudioFlavor = paella.player.config.dceRequiredAudioTagFlavor;
+          let dceIsAudioTagRequiredFlavor = currentTrack.type === dceAudioFlavor;
+          let dceIsMissingAudioTag = (
+            currentTrack.tags
+            && currentTrack.tags.tag
+            && !currentTrack.tags.tag.indexOf(dceAudioTag)
+          );
+          let dceRoleMasterDefaultFlavor = paella.player.config.dceRoleMasterDefaultFlavor;
+          if (dceIsAudioTagRequiredFlavor && dceIsMissingAudioTag) {
+            paella.log.debug(
+              `Removing blank audio attribute from source
+              '${dceAudioFlavor}' because it does not have tag '${dceAudioTag}'`
+            );
+            currentTrack.audio = null;
+            currentStream.dceBlankAudio = true; // #DCE OPC-389
+            paella.dce = paella.dce || {}; // #DCE OPC-420 make custom DCE object store if it doesn't already exist
+            paella.dce.blankAudio = true;  // #DCE OPC-407 to prevent single video toggle on blank audio
+          }
+
+          // #DCE OPC-393 always make "presenter" flavor the role: master video (i.e. main audio track)
+          if (flavor === dceRoleMasterDefaultFlavor ) {
+            paella.log.debug(`LOAD: found master role '${currentTrack.type}'`);
+            currentStream.role = 'master';
+          }
+          // end #DCE OPC-389 and OPC-393
+          // #DCE --- END ------------------
           if (currentTrack.master) {  // HLS-VOD
             hasAdaptiveMasterTrack = true;
           }
@@ -266,6 +330,7 @@ class OpencastToPaellaConverter {
           if (currentTrack.video) {
             currentStream.type = 'video';
           }
+          // #DCE does the following need to be replaced with else if (currentTrack.audio) {?
           else if (currentTrack.audio && currentStream.type !== 'video') {
             currentStream.type = 'audio';
           }
@@ -274,10 +339,6 @@ class OpencastToPaellaConverter {
           if (videoCanvas) {
             currentStream.canvas = [videoCanvas];
           }
-        } else if (currentStream.type === undefined) {
-          // Explicitly set the type, else Paella will assume this track to be 'video' type (Causing an exception
-          // if it is actually not)
-          currentStream.type = 'noType';
         }
       }
     });
@@ -343,9 +404,19 @@ class OpencastToPaellaConverter {
       let importT = false;
       let tags = [];
       if ( (currentTrack.tags) && (currentTrack.tags.tag) ) {
-        tags = [currentTrack.tags.tag];
-        if (!(currentTrack.tags.tag instanceof Array)) {
-          tags = [currentTrack.tags.tag];
+        // #DCE Upstream typo: tags = [currentTrack.tags.tag];
+        // TODO: make OC upstream patch
+        // This:
+        // https://github.com/opencast/opencast/blob/
+        //     develop/modules/engage-paella-player/src/main/paella-opencast/
+        //     plugins/es.upv.paella.opencast.loader/03_oc_search_converter.js#L340-L346
+        // Should be like:
+        // https://github.com/opencast/opencast/blob/
+        //     develop/modules/engage-paella-player/src/main/paella-opencast/
+        //     plugins/es.upv.paella.opencast.loader/03_oc_search_converter.js#L206-L212
+        tags = currentTrack.tags.tag;
+        if (!(tags instanceof Array)) {
+          tags = [tags];
         }
       }
       importT = filterStream.tracks.tags.some(function(cTag) {
@@ -383,59 +454,74 @@ class OpencastToPaellaConverter {
     return paellaStreams;
   }
 
-  readCaptions(potentialNewCaptions, captions) {
-    potentialNewCaptions.forEach((potentialCaption) => {
+  getCaptions(episode) {
+    var captions = [];
+
+    var attachments = episode.mediapackage.attachments.attachment;
+    var catalogs = episode.mediapackage.metadata.catalog;
+    if (!(attachments instanceof Array)) { attachments = attachments ? [attachments] : []; }
+    if (!(catalogs instanceof Array)) { catalogs = catalogs ? [catalogs] : []; }
+
+
+    // Read the attachments
+    attachments.forEach((currentAttachment) => {
       try {
         let captions_regex = /^captions\/([^+]+)(\+(.+))?/g;
-        let captions_match = captions_regex.exec(potentialCaption.type);
+        let captions_match = captions_regex.exec(currentAttachment.type);
 
         if (captions_match) {
+          let captions_format = captions_match[1];
           let captions_lang = captions_match[3];
 
           // TODO: read the lang from the dfxp file
           //if (captions_format == "dfxp") {}
 
-          if (!captions_lang && potentialCaption.tags && potentialCaption.tags.tag) {
-            if (!(potentialCaption.tags.tag instanceof Array)) {
-              potentialCaption.tags.tag = [potentialCaption.tags.tag];
+          if (!captions_lang && currentAttachment.tags && currentAttachment.tags.tag) {
+            if (!(currentAttachment.tags.tag instanceof Array)) {
+              currentAttachment.tags.tag = [currentAttachment.tags.tag];
             }
-            potentialCaption.tags.tag.forEach((tag)=>{
+            currentAttachment.tags.tag.forEach((tag)=>{
               if (tag.startsWith('lang:')){
-                captions_lang = tag.substring('lang:'.length);
+                let split = tag.split(':');
+                captions_lang = split[1];
               }
             });
           }
 
-          let captions_format = potentialCaption.url.split('.').pop();
+          // start #DCE OPC-374 fall back lang TODO: submit to upstream
+          captions_lang = captions_lang || paella.player.config.defaultCaptionLang;
+          // end #DCE OPC-374
+          // start #DCE OPC-629 Include hook for automatic captions tag
+          // WARNING: this uses tags from the LAST of the set of captions parsed.
+          // Ok for DCE, because DCE only attaches one set of captions as of 1/2022.
+          // Update this hook and the DCE captions plugin when/if that changes.
+          if (paella.dce && currentAttachment.tags) {
+            paella.dce.captiontags = currentAttachment.tags.tag;
+          }
+          // end #DCE OPC-629
+          let captions_label = captions_lang || 'unknown language';
+          //paella.utils.dictionary.translate("CAPTIONS_" + captions_lang);
 
           captions.push({
-            id: potentialCaption.id,
+            id: currentAttachment.id,
             lang: captions_lang,
-            text: captions_lang || 'unknown language',
-            url: potentialCaption.url,
+            text: captions_label,
+            url: currentAttachment.url,
             format: captions_format
           });
         }
       }
       catch (err) {/**/}
     });
-  }
 
-  getCaptions(episode) {
-    var captions = [];
-
-    var attachments = episode.mediapackage.attachments.attachment;
-    var catalogs = episode.mediapackage.metadata.catalog;
-    var tracks = episode.mediapackage.media.track;
-    if (!(attachments instanceof Array)) { attachments = attachments ? [attachments] : []; }
-    if (!(catalogs instanceof Array)) { catalogs = catalogs ? [catalogs] : []; }
-    if (!(tracks instanceof Array)) { tracks = tracks ? [tracks] : []; }
-
-    // Read the attachments
-    this.readCaptions(attachments, captions);
-
-    // Read the tracks
-    this.readCaptions(tracks, captions);
+    // #DCE OPC-351 -----
+    // DCE old pub compatibility patch to ignore catalog captions
+    // when attachement captions exist to protect repubs that have
+    // an old 'catalog' caption and a new 'attachment' caption
+    if (captions.length > 0) {
+      return captions;
+    }
+    // #DCE OPC-351 END -----
 
     // Read the catalogs
     catalogs.forEach((currentCatalog) => {
@@ -451,10 +537,23 @@ class OpencastToPaellaConverter {
             }
             currentCatalog.tags.tag.forEach((tag)=>{
               if (tag.startsWith('lang:')){
-                captions_lang = tag.substring('lang:'.length);
+                let split = tag.split(':');
+                captions_lang = split[1];
               }
             });
           }
+
+          // start #DCE OPC-374 fall back lang TODO: submit to upstream
+          captions_lang = captions_lang || paella.player.config.defaultCaptionLang;
+          // end #DCE OPC-374
+          // start #DCE OPC-629 Include hook for automatic captions tag
+          // WARNING: this uses tags from the LAST of the set of captions parsed.
+          // Ok for DCE, because DCE only attaches one set of captions as of 1/2022.
+          // Update this hook and the DCE captions plugin when/if that changes.
+          if (paella.dce && currentCatalog.tags) {
+            paella.dce.captiontags = currentCatalog.tags.tag;
+          }
+          // end #DCE OPC-629
 
           let captions_label = captions_lang || 'unknown language';
           captions.push({
@@ -472,7 +571,8 @@ class OpencastToPaellaConverter {
     return captions;
   }
 
-  getSegments(episode) {
+  // #DCE OPC-525 Add flavor param to allow presenter slide fallback -------
+  getSegments(episode, flavor) {
     var segments = [];
 
     var attachments = episode.mediapackage.attachments.attachment;
@@ -482,7 +582,13 @@ class OpencastToPaellaConverter {
     var opencastFrameList = {};
     attachments.forEach((currentAttachment) => {
       try {
-        if (currentAttachment.type == 'presentation/segment+preview+hires') {
+        // #DCE OPC-525 Flexible slide flavor for presenter slide fallback
+        if (flavor == null) {
+          // UPV upstream default for flavor is presentation
+          flavor = 'presentation';
+        }
+        // #DCE OPC-525 flexible flavor
+        if (currentAttachment.type == flavor + '/segment+preview+hires') {
           if (/time=T(\d+):(\d+):(\d+)/.test(currentAttachment.ref)) {
             time = parseInt(RegExp.$1) * 60 * 60 + parseInt(RegExp.$2) * 60 + parseInt(RegExp.$3);
 
@@ -498,7 +604,8 @@ class OpencastToPaellaConverter {
             opencastFrameList[time].url = currentAttachment.url;
           }
         }
-        else if (currentAttachment.type == 'presentation/segment+preview') {
+        // #DCE OPC-525 fleixbleflavor
+        else if (currentAttachment.type == flavor + '/segment+preview') {
           if (/time=T(\d+):(\d+):(\d+)/.test(currentAttachment.ref)) {
             var time = parseInt(RegExp.$1) * 60 * 60 + parseInt(RegExp.$2) * 60 + parseInt(RegExp.$3);
             if (!(opencastFrameList[time])){
@@ -542,13 +649,19 @@ class OpencastToPaellaConverter {
       }
     });
 
-    return presentationPreview || presenterPreview || otherPreview;
+    // #DCE OPC-354 DCE uploads to presenter Preview, prefer presenter over presentation preview
+    return presenterPreview || presentationPreview || otherPreview;
   }
 
   convertToDataJson(episode) {
     var streams = this.getStreams(episode);
     var captions = this.getCaptions(episode);
-    var segments = this.getSegments(episode);
+    // #DCE OPC-525 retrieve nav previews from presenter as fallback
+    var segments = this.getSegments(episode, 'presentation');
+    if (segments.length == 0) {
+      segments = this.getSegments(episode, 'presenter');
+    }
+    // end #DCE OPC-525 (but additional edits in getSegments())
 
     var data =  {
       metadata: {

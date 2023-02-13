@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Video Player Help Page</title>
+    <link rel="stylesheet" href="mh_dce_resources/style/mh_dce_header.css" type="text/css" />
+    <script type="text/javascript" src="javascript/jquery.min.js"></script>
+    <script type="text/javascript" src="resources/bootstrap/js/bootstrap.min.js"></script>
+    <style type="text/css" media="screen">
+      body{
+        font-size: 16px;
+        margin:0px;
+        background:none repeat scroll 0 0 #F2F5F6;
+        text-align: inherit;
+        line-height: 24px;
+      }
+
+      img.help {
+        max-width:1100px;
+        -webkit-box-shadow: 0 0 2px 2px #343434;
+        -moz-box-shadow:0 0 2px 2px #343434;
+        box-shadow: 0 0 2px 2px #343434;
+      }
+
+      #container,
+      .banner-wrap{
+        max-width:1200px;
+      }
+
+      #container{
+        margin:auto;
+        background-color:white;
+      }
+
+      #content{
+        padding:20px;
+      }
+
+      #content .help_section{
+        margin-bottom: 2.5em;
+        margin-top: 2.5em;
+        border-bottom: 1px dotted #ccc;
+
+      }
+
+      #footer {
+        font-size: 12px;
+      }
+
+    </style>
+    <script type="text/javascript">
+      // DCE MATT-1402
+      // Quick and dirty ability to scope page to vod or live
+      // use URl parameter "show=vod" for video on demand relevant text
+      // use URl parameter "show=live" for live relevant text
+      // anything else will show all the help text
+      jQuery( window ).ready(function( $ ) {
+        // only show the requested elemenets
+        var params = window.location.search;
+        if (params.search(/show=vod/i) > -1) {
+          $(".live").css("display", "none");
+        }
+        if (params.search(/show=live/i) > -1) {
+          $(".vod").css("display", "none");
+        }
+        if (params.search(/timedcomments/i) === -1) {
+          $(".timedcomments").css("display", "none");
+        }
+      });
+    </script>
+  </head>
+  <body id="body" >
+    <div id="paellaExtendedHeader">
+      <!-- Generalized Harvard (Summer/Extenion agnostic) Header -->
+      <div class="topbar">
+        <div class="container">
+          <span class="topbar__logo i-harvard-logo ir">Harvard University</span>
+          <a href="http://www.harvard.edu" class="topbar__link">Harvard.edu</a>
+        </div>
+      </div>
+    </div>
+    <div id="container">
+      <div id="paellaUsageAndFeatures">
+        <div id="content">
+          <h1>Media Player Help Page<span class="vod"> for Video On Demand</span><span class="live"> for Live Events</span></h1>
+          <div class="help_section">
+            <h2>Contents</h2>
+            <ul id="contents_list">
+              <li class="vod"><a href="#basic_usage">Basic usage</a></li>
+              <li class="live"><a href="#live_usage">Live usage</a></li>
+              <li class="vod"><a href="#video_navigation">Video navigation</a></li>
+              <li class="vod"><a href="#change_layout">Change layout</a></li>
+              <li class="all"><a href="#full_screen">Full screen mode</a></li>
+              <li class="vod"><a href="#double_speed">Speeding up/down playback</a></li>
+              <!-- li class="all"><a href="#change_resolution">Video bandwidth resolution</a></li -->
+              <li class="vod"><a href="#material_handouts">Class handouts</a></li>
+              <li class="vod"><a href="#captions">Closed captions</a></li>
+              <li class="timedcomments"><a href="#timedcomments">Student Public Timed Comments</a></li>
+              <li class="all"><a href="#keyboard_shortcuts">Keyboard shortcuts</a></li>
+              <li class="all"><a href="#help_menu">Help menu</a></li>
+            </ul>
+          </div>
+
+          <div class="help_section vod"  id="basic_usage">
+            <h2>Basic usage</h2>
+            <p>The player displays two videos - the presenter and the
+              presentation - along with some control options on the lower menu bar.
+              You can begin viewing the lecture by pressing the
+              play button on top of the video window or in the control bar.</p>
+            <p>
+              <img class="help" src="mh_dce_resources/images/main_video.jpg"
+              alt="Basic usage player screen" style="width: 50%;" />
+            </p>
+          </div>
+
+          <div class="help_section live"  id="live_usage">
+            <h2>Live usage</h2>
+            <p>The player displays the live feed from the classroom.
+              Live player menu contains a limited set of menu options.
+              They include changing resolution, full screen mode, volumne control, and the help button. </p>
+            <p>
+              <img class="help" src="mh_dce_resources/images/LiveVideo.jpg"
+                alt="Live usage player screen" style="width: 50%;" />
+            </p>
+          </div>
+          <div class="help_section vod" id="video_navigation">
+            <h2 >Video navigation</h2>
+            <p>You can navigate to any time in the video by clicking the timeline:</p>
+            <img class="help" src="mh_dce_resources/images/timeline_control.jpg"
+            alt="The timeline control" />
+            <p>We also offer skip controls to help you navigate forward or
+              backwards by set amounts - for instance, to skip back 10 seconds to
+              hear something again that you may have missed.</p>
+            <p>
+              <img class="help" src="mh_dce_resources/images/skip_controls.jpg"
+              alt="The skip controls" />
+            </p>
+
+            <p>You can use the slide tool to skip to a specific part of the video
+              based on what content was being presented. Click the tool and then
+              click a slide to jump to that section of the video.</p>
+
+            <p>
+              <img class="help" src="mh_dce_resources/images/slides.jpg"
+              alt="The slide navigation control" />
+            </p>
+          </div>
+          <div class="help_section vod" id="double_speed">
+            <h2 >Speeding up / slowing down playback</h2>
+            <p>You can increase/decrease the playback speed via the playback
+              speed control. Click it and you'll get a set of choices. Select
+              "1x" to set playback speed back to normal.</p>
+            <p>
+              <img class="help" src="mh_dce_resources/images/playback_speed_control.jpg"
+                alt="The playback speed control" />
+            </p>
+          </div>
+          <!-- div class="help_section all" id="change_resolution">
+            <h2 >Change video resolution</h2>
+            <p>If you are experiencing stuttering or jerky playback, the video stream may be more than your available bandwidth can handle.
+              To resolve this, try lowering the resolution of the video stream.
+              Click on the player's current resolution displayed in the control bar to see available options. </p>
+            <p>
+              <img class="help vod" src="mh_dce_resources/images/resolutionsPlugin.jpg"
+                alt="The change video streaming resolution button" />
+            </p>
+          </div -->
+          <div class="help_section vod" id="change_layout">
+            <h2 >Changing the layout of the player</h2>
+            <p>You can switch between several layouts designed to emphasize the
+              camera or the presentation, depending on the current focus of
+              what's happening in the video. For instance, if the instructor is
+              working on a problem you might want to see the projected chalkboard
+              in as much detail as possible. Switching layouts lets you do
+              this.</p>
+            <p>You switch layouts with "switch layout" tool:</p>
+            <p>
+              <img class="help" src="mh_dce_resources/images/switch_layouts.jpg"
+              alt="The switch layout control" />
+            </p>
+          </div>
+
+          <div class="help_section all" id="full_screen">
+            <h2 >Viewing lectures in full screen mode</h2>
+            <p>Use the "full screen" tool to maximize the size of the videos in
+              your web browser. Press the <b>escape</b> key to exit, or simply
+              click the control again.</p>
+            <img class="help" src="mh_dce_resources/images/fullscreen_control.jpg"
+            alt="The full screen control" />
+          </div>
+
+          <div class="help_section vod" id="material_handouts">
+            <h2 >Class handouts</h2>
+            <p>A "Class Handout" link appears in the help menu if the publication contains an attached handout.
+              Click the "Class Handout" link to access the handout. PDF files
+                may open in another window instead of downloading.
+            </p>
+            <p>
+              <img class="help" src="mh_dce_resources/images/Handouts_button.jpg"
+                alt="The matterhorn handouts button" />
+            </p>
+          </div>
+
+          <div class="help_section vod" id="captions">
+            <h2 >Captions</h2>
+            <p>A closed caption icon (CC) appears on the control bar if the publication contains closed captions.
+              Click closed caption icon to enable captions.            </p>
+            <p>
+              <img class="help" src="mh_dce_resources/images/CCButton.jpg"
+                alt="Turn on captions button" />
+            </p>
+            <p>Click the icon again to close the popup text.</p>
+            <p>
+              <img class="help" src="mh_dce_resources/images/CCButtonOn.jpg"
+                alt="Turn on captions button" />
+            </p>
+            <p> Click the icon and select "Off" to remove captions.</p>
+            <p>
+              <img class="help" src="mh_dce_resources/images/CCButtonOff.jpg"
+                alt="Turn on captions button" />
+            </p>
+          </div>
+            
+            <div class="help_section timedcomments" id="timedcomments">
+                <h2 >Student Public Timed Comments</h2>
+                <p>This feature is new and in BETA stage. The "comments" button will appear on certain series for authenticated viewers. Click the button to view the 
+                    comments interface and to view and post public comments at time points in the lecture. 
+                Students can view and reply to each other's comments. Feedback and comments are welcome!</p>
+                <p>
+                    <img class="help" src="mh_dce_resources/images/TimedComments.jpg"
+                        alt="Timed Comments view" />
+                </p>
+          </div>
+
+          <div class="help_section all" id="help_menu">
+            <h2 >The help menu</h2>
+            <p>The "help" menu has links to give feedback about the player and to find all videos in this course.</p>
+
+            <p>
+              <img class="help" src="mh_dce_resources/images/about_menu.jpg"
+              alt="The help menu" />
+            </p>
+          </div>
+
+          <div class="help_section" id="keyboard_shortcuts">
+            <h2>Keyboard shortcuts</h2>
+            <p>Some basic functions of the player can be used with the keyboard.</p>
+            <ul>
+              <li class="vod">ALT+CTRL+P: play-pause</li>
+              <li class="vod">ALT+CTRL+S: pause</li>
+              <li class="vod">SPACE: play-pause</li>
+              <li class="vod">ALT+CTRL+M: mute</li>
+              <li class="vod">UP: volume up</li>
+              <li class="vod">DOWN: volume down</li>
+              <li class="all">ESCAPE: exit from fullscreen mode</li>
+            </ul>
+          </div>
+          <h2>References</h2>
+          <p>This player is <a
+              target="_blank" href="https://github.com/harvard-dce/paella">open source</a> and
+            based on the "Paella Engage Player" which is published by the
+            Universitat Politecnica de Valencia under the GPL License 3.0. <a
+              href="http://paellaengage.upv.es">http://paellaengage.upv.es</a>
+          </p>
+          </div>
+        </div>
+      </div>
+      <!-- end container -->
+      <div id="paellaExtendedFooter">
+        <div id="footer" class="row">
+          <div id="footer-privacy">
+            <a href="http://www.extension.harvard.edu/privacy-policy">Privacy Policy</a>
+            &#160;|&#160; <a href="/engage/ui/#/tos">Terms of Use</a>
+          </div>
+          <div id="footer-copyright"> &#169; <span id="copyright-year">2016</span> President and Fellows of Harvard College</div>
+        </div>
+        <!-- END #footer -->
+      </div>
+      <script type="text/javascript">
+        var copyrightyear = document.getElementById('copyright-year');
+        if (copyrightyear) {
+          copyrightyear.innerHTML = new Date().getFullYear();
+        }
+      </script>
+    </body>
+  </html>
+

@@ -439,7 +439,7 @@ class SearchEpisode {
 
 
     // author
-    var author = ' ';
+    var author = '&nbsp;';
     var author_search = '';
     if(recording.dcCreator) {
       author = paella.utils.dictionary.translate('by:') + recording.dcCreator;
