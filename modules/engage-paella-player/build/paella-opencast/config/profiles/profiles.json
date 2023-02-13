@@ -1,0 +1,418 @@
+{
+  "s_p_blackboard2": {
+    "name": {"es": "Pizarra"},
+    "hidden": false,
+    "icon": "slide_professor_icon.png",
+    "slaveVideo": {
+      "content": "presenter",
+      "rect": [{
+        "aspectRatio": "16/9",
+        "left": "10",
+        "top": "70",
+        "width": "432",
+        "height": "243"
+      }],
+      "visible": "true",
+      "layer": "1"
+    },
+    "masterVideo": {
+      "content": "presentation",
+      "rect": [{
+        "aspectRatio": "16/9",
+        "left": "450",
+        "top": "135",
+        "width": "816",
+        "height": "459"
+      }],
+      "visible": "true",
+      "layer": "1"
+    },
+    "blackBoardImages": {
+      "left": "10",
+      "top": "325",
+      "width": "432",
+      "height": "324"
+    },
+    "background": {
+      "content": "slide_professor_paella.jpg",
+      "zIndex": 5,
+      "rect": {
+        "left": "0",
+        "top": "0",
+        "width": "1280",
+        "height": "720"
+      },
+      "visible": "true",
+      "layer": "0"
+    },
+    "logos": [{
+      "content": "paella_logo.png",
+      "zIndex": 5,
+      "rect": {
+        "top": "10",
+        "left": "10",
+        "width": "49",
+        "height": "42"
+      }
+    }]
+  },
+  "professor_slide":{
+    "name":{"es":"Presentador y presentación"},
+    "hidden": false,
+    "icon":"professor_slide_icon.png",
+    "masterVideo":{"content":"presenter","rect":[
+      {
+        "aspectRatio": "16/9",
+        "width": "832",
+        "height": "468",
+        "top": "133",
+        "left": "5"
+      },
+      {
+        "aspectRatio": "16/10",
+        "width": "832",
+        "height": "520",
+        "top": "102",
+        "left": "5"
+      },
+      {
+        "aspectRatio": "4/3",
+        "width": "828",
+        "height": "621",
+        "top": "52",
+        "left": "5"
+      }
+    ],"visible":"true","layer":"1"
+    },
+    "slaveVideo":{"content":"presentation","rect":[
+      {
+        "aspectRatio": "16/9",
+        "width": "432",
+        "height": "243",
+        "top": "241",
+        "left": "845"
+      },
+      {
+        "aspectRatio": "16/10",
+        "width": "432",
+        "height": "270",
+        "top": "229",
+        "left": "845"
+      },
+      {
+        "aspectRatio": "4/3",
+        "width": "432",
+        "height": "324",
+        "top": "206",
+        "left": "845"
+      }
+    ],"visible":"true","layer":"1"
+    },
+    "background":{"content":"slide_professor_paella.jpg","zIndex":5,"rect":{"left":"0","top":"0","width":"1280","height":"720"},"visible":"true","layer":"0"}
+  },
+  "slide_professor":{
+    "name":{"es":"Presentación y presentador"},
+    "icon":"slide_professor_icon.png",
+    "masterVideo":{"content":"presenter","rect":[
+      {
+        "aspectRatio": "16/9",
+        "width": "432",
+        "height": "243",
+        "top": "241",
+        "left": "845"
+      },
+      {
+        "aspectRatio": "16/10",
+        "width": "432",
+        "height": "270",
+        "top": "229",
+        "left": "845"
+      },
+      {
+        "aspectRatio": "4/3",
+        "width": "432",
+        "height": "324",
+        "top": "206",
+        "left": "845"
+      }
+    ],"visible":"true","layer":"1"
+    },
+    "slaveVideo":{"content":"presentation","rect":[
+      {
+        "aspectRatio": "16/9",
+        "width": "832",
+        "height": "468",
+        "top": "133",
+        "left": "5"
+      },
+      {
+        "aspectRatio": "16/10",
+        "width": "832",
+        "height": "520",
+        "top": "102",
+        "left": "5"
+      },
+      {
+        "aspectRatio": "4/3",
+        "width": "828",
+        "height": "621",
+        "top": "52",
+        "left": "5"
+      }
+
+    ],"visible":"true","layer":"1"
+    },
+    "background":{"content":"slide_professor_paella.jpg","zIndex":5,"rect":{"left":"0","top":"0","width":"1280","height":"720"},"visible":"true","layer":"0"}
+  },
+
+  "tiny_presentation":{
+    "name":{"en":"Tiny Presentation"},
+    "icon":"professor_slide_icon.png",
+    "masterVideo":{"content":"presenter","rect":[
+      {
+        "aspectRatio": "16/9",
+        "width": "1154",
+        "height": "649",
+        "top": "10",
+        "left": "10"
+      },
+      {
+        "aspectRatio": "16/10",
+        "width": "1050",
+        "height": "656",
+        "top": "10",
+        "left": "117"
+      },
+      {
+        "aspectRatio": "4/3",
+        "width": "932",
+        "height": "699",
+        "top": "10",
+        "left": "50"
+      }
+    ],"visible":"true","layer":"1"
+    },
+    "slaveVideo":{"content":"presentation","rect":[
+      {
+        "aspectRatio": "16/9",
+        "width": "416",
+        "height": "234",
+        "top": "35",
+        "left": "850"
+      },
+      {
+        "aspectRatio": "16/10",
+        "width": "416",
+        "height": "260",
+        "top": "35",
+        "left": "850"
+      },
+      {
+        "aspectRatio": "4/3",
+        "width": "416",
+        "height": "312",
+        "top": "35",
+        "left": "850"
+      }
+    ],"visible":"true","layer":"1"
+    },
+    "background":{"content":"slide_professor_paella.jpg","zIndex":5,"rect":{"left":"0","top":"0","width":"1280","height":"720"},"visible":"true","layer":"0"}
+  },
+
+  "tiny_presenter":{
+    "name":{"en":"Tiny Presenter"},
+    "icon":"professor_slide_icon.png",
+    "masterVideo":{"content":"presenter","rect":[
+      {
+        "aspectRatio": "16/9",
+        "width": "416",
+        "height": "234",
+        "top": "35",
+        "left": "850"
+      },
+      {
+        "aspectRatio": "16/10",
+        "width": "416",
+        "height": "260",
+        "top": "35",
+        "left": "850"
+      },
+      {
+        "aspectRatio": "4/3",
+        "width": "416",
+        "height": "312",
+        "top": "35",
+        "left": "850"
+      }
+    ],"visible":"true","layer":"2"
+    },
+    "slaveVideo":{"content":"presentation","rect":[
+      {
+        "aspectRatio": "16/9",
+        "width": "1154",
+        "height": "649",
+        "top": "10",
+        "left": "10"
+      },
+      {
+        "aspectRatio": "16/10",
+        "width": "1050",
+        "height": "656",
+        "top": "10",
+        "left": "117"
+      },
+      {
+        "aspectRatio": "4/3",
+        "width": "932",
+        "height": "699",
+        "top": "10",
+        "left": "50"
+      }
+    ],"visible":"true","layer":"1"
+    },
+    "background":{"content":"slide_professor_paella.jpg","zIndex":5,"rect":{"left":"0","top":"0","width":"1280","height":"720"},"visible":"true","layer":"0"}
+  },
+    "presenter_only":{
+    "name":{"en":"Presenter Only"},
+    "masterVideo":{"content":"presenter","rect":[
+      {
+        "aspectRatio": "16/9",
+        "width": "1280",
+        "height": "720",
+        "top": "0",
+        "left": "0"
+      },
+      {
+        "aspectRatio": "16/10",
+        "width": "1050",
+        "height": "656",
+        "top": "10",
+        "left": "117"
+      },
+      {
+        "aspectRatio": "4/3",
+        "width": "960",
+        "height": "720",
+        "top": "0",
+        "left": "160"
+      }
+    ],"visible":"true","layer":"1"
+    },
+    "slaveVideo":{"content":"presentation","rect":[
+      {
+        "aspectRatio": "16/9",
+        "width": "0",
+        "height": "0",
+        "top": "0",
+        "left": "0"
+      },
+      {
+        "aspectRatio": "16/10",
+        "width": "0",
+        "height": "0",
+        "top": "0",
+        "left": "0"
+      },
+      {
+        "aspectRatio": "4/3",
+        "width": "0",
+        "height": "0",
+        "top": "0",
+        "left": "0"
+      }
+    ],"visible":"false","layer":"1"
+    },
+    "background":{"content":"slide_professor_paella.jpg","zIndex":5,"rect":{"left":"0","top":"0","width":"1280","height":"720"},"visible":"true","layer":"0"}
+  },
+
+  "presentation_only":{
+    "name":{"en":"Presentation Only"},
+    "icon":"professor_slide_icon.png",
+    "masterVideo":{"content":"presenter","rect":[
+      {
+        "aspectRatio": "16/9",
+        "width": "0",
+        "height": "0",
+        "top": "0",
+        "left": "0"
+      },
+      {
+        "aspectRatio": "16/10",
+        "width": "0",
+        "height": "0",
+        "top": "0",
+        "left": "0"
+      },
+      {
+        "aspectRatio": "4/3",
+        "width": "0",
+        "height": "0",
+        "top": "0",
+        "left": "0"
+      }
+    ],"visible":"false","layer":"2"
+    },
+    "slaveVideo":{"content":"presentation","rect":[
+      {
+        "aspectRatio": "16/9",
+        "width": "1280",
+        "height": "720",
+        "top": "0",
+        "left": "0"
+      },
+      {
+        "aspectRatio": "16/10",
+        "width": "1050",
+        "height": "656",
+        "top": "10",
+        "left": "117"
+      },
+      {
+        "aspectRatio": "4/3",
+        "width": "960",
+        "height": "720",
+        "top": "0",
+        "left": "160"
+      }
+    ],"visible":"true","layer":"1"
+    },
+    "background":{"content":"slide_professor_paella.jpg","zIndex":5,"rect":{"left":"0","top":"0","width":"1280","height":"720"},"visible":"true","layer":"0"}
+  },
+    "monostream":{
+    "name":{"en":"Single Video"},
+    "icon":"professor_slide_icon.png",
+    "masterVideo":{"content":"presenter","rect":[
+      {"aspectRatio":"16/9","left":"0","top":"0","width":"1280","height":"720"},
+      {"aspectRatio":"16/10","left":"64","top":"0","width":"1152","height":"720"},
+      {"aspectRatio":"5/3","left":"40","top":"0","width":"1200","height":"720"},
+      {"aspectRatio":"5/4","left":"190","top":"0","width":"900","height":"720"},
+      {"aspectRatio":"4/3","left":"160","top":"0","width":"960","height":"720"}
+      ],"visible":"true","layer":"1"
+		},
+		    "slaveVideo":{"content":"slides","rect":[
+      {
+        "aspectRatio": "16/9",
+        "width": "0",
+        "height": "0",
+        "top": "0",
+        "left": "0"
+      },
+      {
+        "aspectRatio": "16/10",
+        "width": "0",
+        "height": "0",
+        "top": "0",
+        "left": "0"
+      },
+      {
+        "aspectRatio": "4/3",
+        "width": "0",
+        "height": "0",
+        "top": "0",
+        "left": "0"
+      }
+    ],"visible":"false","layer":"1"
+    },
+    "background":{"content":"slide_professor_paella.jpg","zIndex":5,"rect":{"left":"0","top":"0","width":"1280","height":"720"},"visible":"true","layer":"0"}
+    }
+}

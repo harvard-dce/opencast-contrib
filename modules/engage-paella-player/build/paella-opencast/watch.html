@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8;" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport"
+      content="user-scalable=no, initial-scale=1.0, maximum-scale=1.0, width=device-width" />
+    <title>DCE Paella Engage Video Player</title>
+    <script type="text/javascript" src="javascript/polyfill.min.js"></script>
+    <script type="text/javascript" src="javascript/jquery.min.js"></script>
+    <script type="text/javascript" src="javascript/lunr.min.js"></script>
+    <!-- DCE additional js start -->
+    <script type="text/javascript" src="mh_dce_resources/jquery-ui/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="javascript/app-index.js"></script>
+    <!-- DCE additional js end -->
+    <script type="text/javascript" src="javascript/require.js"></script>
+    <script type="text/javascript" src="javascript/paella_player_es2015.js"></script>
+    <link rel="stylesheet" href="resources/bootstrap/css/bootstrap.min.css" type="text/css"
+      media="screen" charset="utf-8" />
+    <link rel="stylesheet" href="mh_dce_resources/jquery-ui/jquery-ui.min.css" type="text/css" />
+    <!-- DCE style_cs50.css as default paellaSkin, also set in config -->
+    <link rel="stylesheet" href="resources/style/style_cs50.css" id="paellaSkin" type="text/css"
+      media="screen" title="CS50 Skin" charset="utf-8" />
+  </head>
+  <body id="body" onload="loadOpencastPaella('playerContainer');;">
+    <div id="playerContainer" style="display:block;width:100%"> </div>
+  </body>
+</html>
