@@ -475,24 +475,31 @@ class VideoContainerBase extends paella.DomNode {
 	// #DCE OPC-455 return true if any video in container in an active seek
 	areAnyVideosInSeek () {
 		let seekingCount = this._seekingPlayers.size;
-		paella.log.debug(`HTML5: AnySeeking? seeking players: '${seekingCount}'.`);
-		this._seekingPlayers.forEach(p => paella.log.debug(`HTML5: AnySeeking? Still seeking '${p.stream.content}'`));
+		if (seekingCount > 0) {
+			this._seekingPlayers.forEach(p => {
+				paella.log.debug(`-- Video in SEEK '${p.stream.content}' ${JSON.stringify(p.getVideoStateData())}`);
+			});
+		}
+		// paella.log.debug(`HTML5: AnySeeking? seeking players: '${seekingCount}'.`);
+		// this._seekingPlayers.forEach(p => paella.log.debug(`HTML5: AnySeeking? Still seeking '${p.stream.conteånt}'`));
 		return seekingCount > 0;
 	}
 
 	// #DCE OPC-455 return true if any video in container in an active seek or active wait to play
-	areAnyVideosInSeekOrWaitToPlay () {
+	areAnyVideosWaitingToPlay () {
 		let waitingForPlayCount = this._waitingToPlayPlayers.size;
-		paella.log.debug(`HTML5: AnyWaitingToPlay? waiting to player players: '${waitingForPlayCount}'.`);
-		this._waitingToPlayPlayers.forEach(p => paella.log.debug(`HTML5: AnySeeking? Waiting to Play '${p.stream.content}'`));
-		return this.areAnyVideosInSeek() && waitingForPlayCount > 0;
+		if (waitingForPlayCount > 0) {
+			this._waitingToPlayPlayers.forEach(p => {
+				paella.log.debug(`-- Video waiting to PLAY '${p.stream.content}' ${JSON.stringify(p.getVideoStateData())}`);
+			});
+		}
+		return waitingForPlayCount > 0;
 	}
 
 	// #DCE OPC-407 only play if all players are not seeking
 	playIfNonAreSeeking (player, callStackId) {
 		if (!player || !player.stream) return;
 		this._waitingToPlayPlayers.add(player);
-
 		// #DCE OPC-439 account for start trim when setting player time
 		let currentTrimmedTimeToSeek = 0;
 		if (!this.areAnyVideosInSeek()) {
@@ -523,7 +530,7 @@ class VideoContainerBase extends paella.DomNode {
 				}
 			});
 		} else {
-			paella.log.debug(`HTML5: other players are still seeking, '${player.stream.content}' will wait until all finish seeking, callStackId:${callStackId}.`);
+			this.areAnyVideosWaitingToPlay();
 		}
 	}
 
@@ -578,31 +585,39 @@ class VideoContainerBase extends paella.DomNode {
 			let doGroupSynchScrub = false; // OPC-458 Safari new tab open synch fix
 			let doGroupSynchToggle = self._syncHits % 2 > 0;
 			streams.forEach(v => {
-			 if (paella.player.videoContainer.isMonostream || !v.video) {
-			   return;
-			 }
-			 if (v._isSeeking) {
-			   paella.log.debug(`HTML5: Not synching video, video '${v._identifier}' (${v._stream.content}) is already seeking`);
-			   return;
+			 // Conditions for skipping sync for this stream
+			 if (self.isMonostream
+				|| !v.video
+				// Make sure this video is not in seek state
+				|| v.isSeeking()
+				// Make sure a seek did not happen since previous check in last cycle
+				// This was possibly the race condition from Safari
+				|| self.areAnyVideosInSeek())
+				{
+					// exit early for this video
+					return;
 			 }
 			 let thisVideoTime = v.video.currentTime;
 			 let diff = Math.abs(thisVideoTime - mainVideoTime);
-			 let anyVideosInSeek = paella.player.videoContainer.areAnyVideosInSeek();
-			 paella.log.debug(`HTML5-SYNC: About to check sync on '${v._stream.content}' (${v._identifier}) ${v.video.paused?'paused': 'running'}' timediff=${diff} thisVideoTime = ${thisVideoTime} mainVideo=${mainVideoTime} containerTrimTime=${currentTrimmedTime}, AnySeeking? ${anyVideosInSeek}`);
-			 if (v !== paella.player.videoContainer.streamProvider.mainAudioPlayer && !v.video.paused && diff > self._maxSyncDelay) {
-			   let seekTime = shortbuffer > mainVideoTime ? shortbuffer : parseFloat(mainVideoTime).toFixed(3); // #DCE OPC-439 synch to buffer offset of main video time
-			   if (!isPaused) {
-			     seekTime += (self._maxSyncDelay - shortbuffer); // add future buffer to catch running audio
-			   }
-			   if (doGroupSynchToggle) {
-			     doGroupSynchScrub = true;
-			     paella.log.debug(`HTML5: Will do group sync for '${v._stream.content}' (${v._identifier}) paused=${v.video.paused}, timediff=${diff}, settingToTime=${seekTime}`);
-			   } else {
-			     paella.log.debug(`HTML5: About to DIRECTLY seek synch video '${v._stream.content}' (${v._identifier}) paused=${v.video.paused}, timediff=${diff}, settingToTime=${seekTime}`);
-			     updated.push(v);
-			     promises.push(v.setCurrentTime(seekTime));
-			   }
-			  }
+			 // Don't synch the video that is running the audio track, synch the non-audio video to the audio video
+			 if ( v !== paella.player.videoContainer.streamProvider.mainAudioPlayer
+					// Don't do synch if this video is in a paused state
+					&& !v.video.paused
+					&& diff > self._maxSyncDelay)
+				{
+					let seekTime = shortbuffer > mainVideoTime ? shortbuffer : parseFloat(mainVideoTime).toFixed(3); // #DCE OPC-439 synch to buffer offset of main video time
+					if (!isPaused) {
+						seekTime += (self._maxSyncDelay - shortbuffer); // add future buffer to catch running audio
+					}
+					if (doGroupSynchToggle) {
+						doGroupSynchScrub = true;
+						paella.log.debug(`HTML5: Will do group sync for '${v._stream.content}' (${v._identifier}) paused=${v.video.paused}, timediff=${diff}, settingToTime=${seekTime}`);
+					} else {
+						paella.log.debug(`HTML5: About to DIRECTLY seek synch video '${v._stream.content}' (${v._identifier}) paused=${v.video.paused}, timediff=${diff}, settingToTime=${seekTime}`);
+						updated.push(v);
+						promises.push(v.setCurrentTime(seekTime));
+					}
+				}
 			});
 			if (doGroupSynchScrub || promises.length > 0) {
 			 self._syncHits++;
@@ -1348,7 +1363,12 @@ class VideoContainer extends paella.VideoContainerBase {
 			// TODO: Make UPV patches for following
 			// #DCE OPC-454 don't play after trim end
 			let wasPlaying, isTrimEnd = false;
-			this.trimming()
+			let duration;
+			this.duration(true)
+				.then((dur) => {
+					duration = dur;
+					return this.trimming();
+				})
 				.then((trimmingData) => {
 					if (trimmingData.enabled) {
 						time += trimmingData.start;
@@ -1360,8 +1380,13 @@ class VideoContainer extends paella.VideoContainerBase {
 							time = trimmingData.end;
 							isTrimEnd = true; // #DCE OPC-454
 						}
+					} else {
+						if (Math.floor(duration) <= time) {
+							// protection from seeking to endpoint of video
+							time = Math.floor(duration) - 5;
+						}
 					}
-					//#DCE OPC-428 load the load spinner while #DCE OPC-407 pause if not already paused before setting time
+ 					//#DCE OPC-428 load the load spinner while #DCE OPC-407 pause if not already paused before setting time
 					paella.player.loader.seekload();
 					this._seeking = true;
 					return this.paused();
@@ -1378,9 +1403,6 @@ class VideoContainer extends paella.VideoContainerBase {
 					return this.streamProvider.callPlayerFunction('setCurrentTime', time);
 				})
 				.then(() => {
-					return this.duration(true);
-				})
-				.then((duration) => {
 					// #DCE OPC-428 take loader overlay off after seeking to the new time
 					paella.player.loader.loadComplete();
 					this._seeking = false;

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8;" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="user-scalable=no, initial-scale=1.0, maximum-scale=1.0, width=device-width" />
+    <title>DCE iFramed Paella Engage Video Player Driver</title>
+  </head>
+  <body>
+    <button type="button" id="play" name="play" aria-label="play video" onclick="play()">Play</button>
+    <button type="button" id="pause" name="pause" aria-label="pause video" onclick="pause()">Pause</button>
+    <div id="status">
+      <p>
+       Video is: <span id="status-play-pause"></span>
+      </p>
+      <p>
+       Current Time: <span id="status-time"></span>
+      </p>
+      <p>
+       Last event: <span id="status-last-event"></span>
+      </p>
+      <p>
+       Error: <span id="status-error"></span>
+      </p>
+    </div>
+    <div id="playerContainer" style="display: block; width: 100%; "/>
+    <script type="text/javascript">
+      const params = new URLSearchParams(location.search);
+      const mpId = params.get("id");
+      const startSec = params.get("start");
+      const endSec = params.get("end");
+      const byUrl = params.get("byUrl");
+      const byId = params.get("byId");
+      const videoHost = decodeURI(params.get("host") || location.origin);
+      const playerUrl = `${videoHost}/engage/player/watch.html?id=${mpId}&logLevel=debug`;
+      const player;
+      const playTimeTimer;
+      const playStatusElemId  = "status-play-pause";
+      const playTimeElemId = "status-time";
+      const playErrorElemId = "status-error";
+      const onPaellaIframeAPIReady = () => {
+        console.log("IframeApi: onPaellaIframeAPIReady was called");
+
+        if (!mpId) {
+          console.log("IframeApi: mediapackaeg ID must be informed as a url param in order to do the embed");
+          return;
+        }
+
+        // params to load video by other APIs
+        let initMp = null;
+        if (!byId && !byUrl) {
+          initMp = mpId;
+        }
+
+        // normally loadOpencastPaella
+        player = new HudcePaellaPlayer.Player(
+          "playerContainer",
+          {
+            height: "480",
+            width: "640",
+            videoId: initMp,
+            videoHost,
+            playerVars: {},
+            events: {
+              "onReady": onPlayerReadyHandler,
+              "onStateChange": onPlayerStateChangeHandler,
+              "onError": onErrorHandler,
+            }
+          }
+        ).then((player) => {
+            // For testing with path to different DNS player
+            if (byUrl) {
+              return player.loadVideoByUrl(
+                playerUrl,
+                startSec,
+              );
+            } else if (byId) {
+              // Test with this DNS"s player
+              return player.loadVideoById({
+                "videoId": mpId,
+                videoHost,
+                "startSeconds": startSec,
+                "endSeconds": endSec,
+              });
+            }
+          }
+        ).then((player) => {
+          // It's finally safe to return the player
+          return player;
+          }
+        );
+      }
+
+      /**
+       * function to request the player to play
+       */
+      const play = () => {
+        if (player) {
+          player.playVideo();
+          getUpdatedPlayTime();
+        } else {
+          document.getElementById(playErrorElemId).textContent = 'player does not exist, cannot play it.';
+        }
+      }
+
+      /**
+       * function to request the player to pause
+       */
+      const pause = () => {
+        if (player) {
+          player.pauseVideo();
+          clearTimeout(playTimeTimer);
+        } else {
+          document.getElementById(playErrorElemId).textContent = 'player does not exist, cannot pause it.';
+        }
+      }
+
+      /**
+       * Callback function that player is loaded and ready to play
+       */
+      const onPlayerReadyHandler = () => {
+        console.log("IframeApi: Got player", event.data);
+        play();
+      }
+
+      /**
+       * Callback function that player state has changed
+       * @param {object} event - the player state change event object
+       */
+      const onPlayerStateChangeHandler = (event) => {
+        console.log("IframeApi: Got State Change", event, event.data);
+        document.getElementById(playStatusElemId).textContent = event.data;
+      }
+
+      const getUpdatedPlayTime() {
+        document.getElementById(playTimeElemId).textContent = player.getCurrentTime();
+        playTimeTimer = setTimeout(getUpdatedPlayTime(), 1000);
+      }
+
+      /**
+       * Callback function that handles player errors
+       * @param {object} event - the player error event object
+       */
+      const onErrorHandler = (event) => {
+        console.log("IframeApi: Got error", event);
+        document.getElementById(playErrorElemId).textContent = event.data;
+      }
+    </script>
+    <!-- Add the Paella iFrameEmbed Script LOCALLY-->
+    <script type="text/javascript" src="mh_dce_resources/api/iFrameEmbedApi.js" ></script>
+  </body>
+</html>

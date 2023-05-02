@@ -86,12 +86,15 @@ function loadOpencastPaella(containerId) {
               var converter = new OpencastToPaellaConverter();
               var data = converter.convertToDataJson(episode);
               if (data.streams.length < 1) {
-                paella.messageBox.showError(paella.utils.dictionary.translate('Error loading video! \
-                No video tracks found'));
+                // #DCE OPC-621 use common function to show error and send error message
+                paella.opencast.showLoadErrorMessage(paella.dictionary.translate('Error loading video! \
+                  No video tracks found'));
               }
               else {
                 // #DCE start custom data processing ----
                 dceCustomLoadProcessing(data);
+                // #DCE OPC-621 Alert API parent of auth resolved and metadata
+                dceApiWrapperSendLoadData(episode);
                 // #DCE end ----
                 resolve(data);
               }
@@ -110,7 +113,8 @@ function loadOpencastPaella(containerId) {
                 )
                 .replace(/\{id\}/g, paella.utils.parameters.get('id') || ''
                 );
-                paella.messageBox.showError(errMsg);
+                // #DCE OPC-621 use common function to show error and send error message
+                paella.opencast.showLoadErrorMessage(errMsg);
               } else {
                 // #DCE OPC-374 Opencast makes user log in if 0 results,
                 // DCE has already done auth by this point and knows
@@ -118,7 +122,8 @@ function loadOpencastPaella(containerId) {
                 errMsg = paella.utils.dictionary.translate(
                   'Error loading video {id}'
                 ).replace(/\{id\}/g, paella.utils.parameters.get('id') || '');
-                paella.messageBox.showError(errMsg);
+                // #DCE OPC-621 use common function to show error and send error message
+                paella.opencast.showLoadErrorMessage(errMsg);
               }
             });
             // TODO: finish by re-throwing the reject()?
@@ -149,11 +154,11 @@ function dceCustomLoadProcessing(data) {
   // They can only deal with one m3u8 master per flavor.
   // In order to allow a user to toggle video resolutions for the live HLS
   // Video, the second HLS manifest is extracted from the first (and only)
-  // track source, and put into a dummy seconday source.
+  // track source, and put into a dummy secondary source.
   // The SingleVideoToggle plugin checks for paella.dce.hlsLiveToggleV1 in
   // order to facilitate video toggle between the first source
   // and the secondary source. The SingleVideoToggle plugin is the control
-  // bar UI plugin that allows the user to swith HLS live resolution.
+  // bar UI plugin that allows the user to switch HLS live resolution.
   if (paella.dce.sources.length == 1
       && paella.dce.sources[0].sources
       && paella.dce.sources[0].sources.hls
@@ -179,7 +184,7 @@ function dceCustomLoadProcessing(data) {
 
   // #DCE toggle presenter & presentation option when ios (bypass paella5
   // exclusion of presentation video)
-  // This is still necessary in Paellav6x: Hide the slave stream from
+  // This is still necessary in Paella v6x: Hide the slave stream from
   // paella if ios, will be used in singleVideoToggle
   // Toggling video players with profiles and hard swap the main
   // Audio player doesn't work. Safari video elements become "suspended"
@@ -187,4 +192,40 @@ function dceCustomLoadProcessing(data) {
     data.streams = [];
     data.streams[0] = paella.dce.sources[0];
   }
+}
+
+/**
+ * DCE ApiWrapperSendLoadData
+ * - #DCE OPC-621, DCE Wrapper API for Immersive Classroom
+ * @param {*} data
+ */
+function dceApiWrapperSendLoadData(episode) {
+  // Alert API wrapper the special condition of auth resolved
+  // Include metadata in the format of YouTube video resource
+  // https://developers.google.com/youtube/v3/docs/videos?hl=en#resource
+  const updateMessage = {
+    sender: window.name, // equates to the iFrame name
+    name: 'onAuthReady',
+    metadata: {
+      'kind': 'dce-opencast#video',
+      'id': episode.mediapackage.id,
+      'snippet': {
+        'publishedAt': episode.mediapackage.start,
+        'title': episode.mediapackage.title,
+        'description': episode.mediapackage.description,
+        'subject': episode.mediapackage.subject,
+        'channelTitle': episode.mediapackage.seriestitle,
+        'channelId': episode.mediapackage.series,
+        'creators': episode.mediapackage.creators
+      },
+      'contentDetails': {
+        // Convert duration from ms to seconds
+        'duration': Number.parseFloat(episode.mediapackage.duration / 1000),
+      }
+    }
+  };
+  // Asynch to queue the post request outside of flow
+  setTimeout(function(){
+    window.parent.postMessage(updateMessage, '*');
+  }, 0);
 }

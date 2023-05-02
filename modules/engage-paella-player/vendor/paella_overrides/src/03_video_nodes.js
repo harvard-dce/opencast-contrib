@@ -15,8 +15,9 @@
 */
 /* #DCE OPC-374, OPC-357 MATT-2502 override default video rectangle dimensions
  * to fit extra wide live combo (still needed in Paella v6.2.0)
- */
-/* #DCE OPC-407 override setCurrent time and more video event debug logs */
+ * #DCE OPC-407 override setCurrent time and more video event debug logs
+ * #DCE OPC-683 Patch for HLS seek & synch hanging for apple devices (Safari)
+*/
 (() => {
 
 paella.Profiles = {
@@ -695,6 +696,21 @@ class VideoElementBase extends paella.VideoRect {
 		return paella_DeferredNotImplemented();
 	}
 
+	// #DCE OPC-683 Safari seek
+	getVideoReadyState() {
+		return paella_DeferredNotImplemented();
+	}
+
+	// #DCE OPC-683 Safari seek
+	getVideoStateData() {
+		return paella_DeferredNotImplemented();
+	}
+
+	// #DCE OPC-683 Safari seek
+	isSeeking() {
+		return paella_DeferredNotImplemented();
+	}
+
 	play() {
 		paella.log.debug("TODO: implement play() function in your VideoElementBase subclass");
 		return paella_DeferredNotImplemented();
@@ -854,9 +870,6 @@ class Html5Video extends paella.VideoElementBase {
 
 		this._streamName = streamName || 'mp4';
 		this._playbackRate = 1;
-		// #DCE OPC-407 the seeking state of this player
-		// (ref videoContainer's _isSeekingCount)
-		this._isSeeking = false;
 
 		if (this._stream.sources[this._streamName]) {
 			this._stream.sources[this._streamName].sort(function (a, b) {
@@ -866,7 +879,6 @@ class Html5Video extends paella.VideoElementBase {
 
 		this.video.preload = "auto";
 		this.video.setAttribute("playsinline","");
-		//this.video.setAttribute("tabindex","-1");
 
 		this._configureVideoEvents(this.video);
 	}
@@ -881,7 +893,7 @@ class Html5Video extends paella.VideoElementBase {
 					delete this._initialCurrentTime;
 				}
 				this._callReadyEvent();
-			// #DCE OPC-552 disable when reloading TODO: make upstream patch
+			// #DCE OPC-552 disable when reloading TODO: make upstream patch?
 			} else if (this.video.readyState==1) {
 				this._ready = false;
 			}
@@ -889,7 +901,7 @@ class Html5Video extends paella.VideoElementBase {
 
 		// #DCE OPC-407 utility log
 		this.debugEventVideoStatus = (event) => {
-			paella.log.debug(`HTML5: video event '${event}' on '${this._identifier}(${this.stream.content})',  seekingFlag: ${this._isSeeking}, videoDur: '${this.video? this.video.duration: 0}' `);
+			paella.log.debug(`HTML5: video event '${event}' on '${this._identifier}(${this.stream.content})', ${JSON.stringify(this.getVideoStateData())}`);
 		}
 
 		let evtCallback = (event) => { onProgress.apply(this,[event]); }
@@ -903,10 +915,12 @@ class Html5Video extends paella.VideoElementBase {
 		// Save current time to resume video
 		$(this.video).bind('timeupdate', (evt) => {
 			if (!this._ready) {
+				// #DCE OPC-683 TODO: check if readyState is 4?
 				this._ready = true; // #DCE OPC-357 for hls.js
+				this.debugEventVideoStatus('timeupdate set _ready to true');
 			}
 			this._resumeCurrentTime = this.video.currentTime;
-			this.debugEventVideoStatus('timeupdate');
+			// Timeupdate happens too frequently to debug log!
 		});
 
 		$(this.video).bind('ended',(evt) => {
@@ -921,23 +935,8 @@ class Html5Video extends paella.VideoElementBase {
 			this.debugEventVideoStatus('emptied');
 		});
 
+		// #DCE OPC-683 cleaned up events for debugging
 		// #DCE OPC-407
-		$(this.video).bind('seeking', evt => {
-			this._isSeeking = true; // set seek flag for video
-			this.debugEventVideoStatus('seeking');
-		});
-		$(this.video).bind('seeked', evt => {
-			this._isSeeking = false; // update seek flag for video
-			this.debugEventVideoStatus('seeked');
-		});
-		$(this.video).bind('stalled', evt => { // failed to fetch data, but still trying
-			this.debugEventVideoStatus('stalled');
-		});
-		$(this.video).bind('loadeddata', evt => {
-			this._isSeeking = false; // make sure seek flag is off
-			this.debugEventVideoStatus('loadeddata');
-		});
-
 		// #DCE OPC-357 more events for HLS debugging
 		let eventNames = [
 			'durationchange',
@@ -947,10 +946,22 @@ class Html5Video extends paella.VideoElementBase {
 			'playing',
 			'pause',
 			'waiting',
+			'seeking',
+			'seeked',
 			'ratechange',
 			'volumechange',
 			'complete',
 			'audioprocess',
+			'progress',
+			'loadstart',
+			'loadeddata',
+			'loadedmetadata',
+			'canplay',
+			'oncanplay',
+			'complete',
+			'loadeddata',
+			'audioprocess',
+			'error'
 		];
 
 		eventNames.forEach((event) => {
@@ -963,10 +974,11 @@ class Html5Video extends paella.VideoElementBase {
 		// Fix safari setQuality bug
 		if (paella.utils.userAgent.browser.Safari) {
 			$(this.video).bind('canplay canplaythrough', (evt) => {
-				// #DCE TODO: submit patch upstream (0 is a valid true time!)
-				(this._resumeCurrentTime == 0 || this._resumeCurrentTime)
-				 && (this.video.currentTime = this._resumeCurrentTime);
-				this._isSeeking = false; // #DCE OPC-407 make sure seek flag is off
+				// TODO: verify if this is still needed for Safari mobile toggle
+				// Might not be needed for HLS, but possibly needed for progressive
+				// #DCE DCEs Paella 6x patch for 0 is a valid true time
+				// (this._resumeCurrentTime == 0 || this._resumeCurrentTime)
+				// && (this.video.currentTime = this._resumeCurrentTime);
 				this.debugEventVideoStatus('canplay canplaythrough');
 			});
 		}
@@ -1089,6 +1101,40 @@ class Html5Video extends paella.VideoElementBase {
 				});
 			});
 		});
+	}
+
+	// #DCE OPC-683 Safari seek logging
+	// This is more run time specific data than getVideoData
+	getVideoStateData() {
+		if (this.video && this.stream) {
+			return {
+				name: this.stream.content,
+				videoId: this.video.id,
+				role: this.stream.role,
+				videoReadyCode: this.video.readyState,
+				isSeeking: this.video.seeking,
+				isPaused: this.video.paused,
+				currentTime: this.video.currentTime
+			}
+			return 'unknown video or stream';
+		}
+	}
+
+	// #DCE OPC-683 Safari seek
+	isSeeking() {
+		if (this.video && this.ready) {
+			return  this.video.seeking;
+		}
+		return false;
+	}
+
+	// #DCE OPC-683 Safari seek
+	getVideoReadyState() {
+		if (this.video && this.ready) {
+			return  this.video.readyState;
+		}
+		// unknown state
+		return 0;
 	}
 
 	setPosterFrame(url) {
@@ -1299,43 +1345,54 @@ class Html5Video extends paella.VideoElementBase {
 		});
 	}
 
-	// #DCE OPC-552, OPC-407  DCE seek protection. TODO: submit upstream?
+	// #DCE OPC-552, OPC-407  DCE seek protection. TODO: verify this is still needed for browsers & if still needed in upgrade code
 	setCurrentTime(time) {
 	 time = parseFloat(time).toFixed(3); // #DCE OPC-407 simplify for Safari
-	 let callStackId = Math.floor((Math.random()*100) + 1); // random number for psudeo call stack/thread id
-	 paella.log.debug(`HTML5: setCurrentTime for '${this.stream.content}' time '${time}', callStackId:${callStackId}`);
+	 let callStackId = Math.floor((Math.random()*100) + 1); // random number for pseudo call stack/thread id
+	 paella.log.debug(`HTML5: setCurrentTime '${time}', state=${JSON.stringify(this.getVideoStateData())}, callStackId:${callStackId}, `);
+	 let This = this;
 	 return new Promise(resolve => {
-	   let paused = this.video.paused;
-	   let currentTime = this.video.currentTime;
-	   let This = this;
-	   let anyVideosInSeek = paella.player.videoContainer.areAnyVideosInSeek();
-	   paella.log.debug(`HTML5: setCurrentTime for '${this.stream.content}' time '${time}' is already seeking = ${this._isSeeking}, Seeking including this one: ${anyVideosInSeek}, callStackId:${callStackId}`);
-	   let onSeek = function () {
-	     // #DCE remove the players seek tag and remove it from the seeking player collection
-	     This._isSeeking = false;
+	   let wasPaused = This.video.paused;
+	   let currentTime = This.video.currentTime;
+	   let onSeek = function (event) {
+			 if (This.getVideoReadyState() < 4) {
+				paella.log.debug(`HTML5: wait for ready state to be 4, currently ${This.getVideoReadyState()} on event '${event.type}' video=${JSON.stringify(This.getVideoStateData())}`);
+				// Remove previous and adding a new progress listener
+				This.video.removeEventListener('progress', onSeek);
+				This.video.addEventListener('progress', onSeek, false);
+				return;
+			 } else {
+				paella.log.debug(`HTML5: ready status ${This.getVideoReadyState()} on event '${event.type}' video=${JSON.stringify(This.getVideoStateData())}`);
+			 }
+			 // Remove this player from the seeking collection
 	     paella.player.videoContainer._seekingPlayers.delete(This);
-	     This.video.removeEventListener('seeked', onSeek, false);
-	     let anyVideosInSeek = paella.player.videoContainer.areAnyVideosInSeek(); // retest seeking count
-	     paella.log.debug(`HTML5: in "onSeek" handler for '${This.stream.content}' time '${time}', Seeking including this one: ${anyVideosInSeek}, callStackId:${callStackId}`);
-	     if (!paused) {
-	        // #DCE OPC-407 this will only start playing the video when all players have finished seeking.
-	        paella.player.videoContainer.playIfNonAreSeeking(This);
-	     }
+			 // Remove progress listeners
+	     This.video.removeEventListener('seeked', onSeek);
+	     This.video.removeEventListener('progress', onSeek);
+	     // Debug if any other videos are still in seek state
+	     let anyVideosInSeek = paella.player.videoContainer.areAnyVideosInSeek();
+	     paella.log.debug(`HTML5: "onSeek" handler, time '${time}', Seeking including this one: ${anyVideosInSeek}, callStackId:${callStackId}, paused=${wasPaused} state=${JSON.stringify(This.getVideoStateData())}`);
+	     if (!wasPaused) {
+				paella.log.debug(`HTML5: "onSeek" video was playing before seek, about to check if video can be set to play for '${This.stream?.content}' `);
+				// #DCE OPC-407 this will only start playing the video when all players have finished seeking.
+				paella.player.videoContainer.playIfNonAreSeeking(This, callStackId);
+	     } else {
+				paella.log.debug(`HTML5: "onSeek" video was paused before seek, all done seek process for '${This.stream?.content}' '${This.getVideoStateData()}'`);
+			 }
 	     resolve();
 	   };
 
-	   if ((!this._isSeeking) && (time === 0 || time) && !isNaN(time)) {
-	     paella.log.debug(`HTML5: setting is Seeking to TRUE for '${this.stream.content}' for time ${time}, callStackId:${callStackId}`);
-	     this._isSeeking = true;
-	     paella.player.videoContainer._seekingPlayers.add(this);
-	     this.pause().then(() => {
-	       paella.log.debug(`HTML5: setCurrentTime on video element directly: ${time} '${this.stream.content}' was paused = ${paused}, is now paused = ${this.video.paused} currentTime = ${this.video.currentTime}, callStackId:${callStackId}`);
-	       this.video.addEventListener('seeked', onSeek);
+	   if ((!This.isSeeking()) && (time === 0 || time) && !isNaN(time)) {
+	     paella.log.debug(`HTML5: add to SEEKING PLAYERS '${This.stream?.content}' for time ${time}, callStackId:${callStackId} state=${JSON.stringify(This.getVideoStateData())}`);
+	     paella.player.videoContainer._seekingPlayers.add(This);
+	     This.pause().then(() => {
+	       paella.log.debug(`HTML5: CALLING setCurrentTime on video element directly: ${time} '${This.stream?.content}' was paused = ${wasPaused}, is now paused = ${This.video.paused} currentTime = ${This.video.currentTime}, callStackId:${callStackId} state=${JSON.stringify(This.getVideoStateData())}`);
+	       This.video.addEventListener('seeked', onSeek);
 	       // #DCE OPC-407 Warning don't use '"video.fastSeek" here. It creates a target estimate and does not go to requested time in Safari
-	       this.video.currentTime = time;
+	       This.video.currentTime = time;
 	     });
 	   } else {
-	     paella.log.debug(`HTML5: setCurrentTime *NOT SETTING TIME* (already seeking): ${time} '${this.stream.content}' was paused = ${paused}, is now paused = ${this.video.paused} currentTime = ${this.video.currentTime}, callStackId:${callStackId}`);
+	     paella.log.debug(`HTML5: setCurrentTime *NOT SETTING TIME* (already seeking): ${time} '${This.stream?.content}' was paused = ${wasPaused}, is now paused = ${This.video?.paused} currentTime = ${This.video?.currentTime}, callStackId:${callStackId} state=${JSON.stringify(This.getVideoStateData())}`);
 	   }
 	 });
 	}

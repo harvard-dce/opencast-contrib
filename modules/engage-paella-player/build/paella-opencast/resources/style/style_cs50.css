@@ -3155,6 +3155,26 @@ dialog-form-alias > div.ui-dialog-buttonset {
   bottom: 0px;
   right: 0px;
 }
+.blackBoardDiv {
+  position: absolute;
+  /* 16:9 */
+  width: 816px;
+  height: 459px;
+  top: 135px;
+  left: 450px;
+  background-size: 100%;
+}
+.lensClass {
+  background-color: rgba(255, 236, 195, 0.3);
+  position: absolute;
+  border: 1px dotted white;
+}
+.lensContainer img {
+  width: 100% !important;
+}
+#overlayContainer div.lensContainer {
+  pointer-events: all;
+}
 .buttonPlugin.audioTags {
   text-align: center;
   background-position: -900% -200%;
@@ -3175,26 +3195,6 @@ dialog-form-alias > div.ui-dialog-buttonset {
 }
 .videoAudioTrackItem:hover {
   background-color: #cc0000;
-}
-.blackBoardDiv {
-  position: absolute;
-  /* 16:9 */
-  width: 816px;
-  height: 459px;
-  top: 135px;
-  left: 450px;
-  background-size: 100%;
-}
-.lensClass {
-  background-color: rgba(255, 236, 195, 0.3);
-  position: absolute;
-  border: 1px dotted white;
-}
-.lensContainer img {
-  width: 100% !important;
-}
-#overlayContainer div.lensContainer {
-  pointer-events: all;
 }
 .textBreak {
   background-color: rgba(128, 128, 128, 0.7);
@@ -4034,31 +4034,6 @@ recordings_entry_text_date {
 .rateButtons .starButton:first-of-type {
   margin-left: 19px;
 }
-.buttonPlugin.shareButtonPlugin {
-  text-align: center;
-  background-position: -700% -200%;
-  font-size: 0.8em;
-  line-height: 40px;
-}
-.buttonPluginPopUp.shareButtonPlugin {
-  right: 0;
-  min-width: 500px;
-  padding: 10px;
-}
-.alert-share {
-  background-color: #a4a4a4;
-  border-color: #4b4b4b;
-  color: #333333;
-  user-select: text;
-}
-.share-button {
-  color: white;
-  font-size: 18px;
-  padding: 3px;
-}
-.share-button:hover {
-  background-color: #e4e4e4;
-}
 .buttonPlugin.searchButton {
   background-size: 2000% 1000%;
   background-position: -900% -100%;
@@ -4177,6 +4152,31 @@ svg rect {
 .buttonPluginPopUp.themeChooserPlugin .themebutton:hover {
   background-color: #555;
 }
+.buttonPlugin.shareButtonPlugin {
+  text-align: center;
+  background-position: -700% -200%;
+  font-size: 0.8em;
+  line-height: 40px;
+}
+.buttonPluginPopUp.shareButtonPlugin {
+  right: 0;
+  min-width: 500px;
+  padding: 10px;
+}
+.alert-share {
+  background-color: #a4a4a4;
+  border-color: #4b4b4b;
+  color: #333333;
+  user-select: text;
+}
+.share-button {
+  color: white;
+  font-size: 18px;
+  padding: 3px;
+}
+.share-button:hover {
+  background-color: #e4e4e4;
+}
 .translecturesCaptionsMessageBox {
   margin-left: auto;
   margin-right: auto;
@@ -4206,37 +4206,6 @@ svg rect {
 	position:absolute;
 	left: 0px;
 */
-}
-.buttonPlugin.left.videoData {
-  height: auto;
-  width: 100%;
-  margin-top: 5px;
-  margin-left: auto;
-  margin-right: auto;
-  background-color: rgba(0, 0, 0, 0.6);
-}
-.buttonPlugin.left.videoData h1 {
-  color: white;
-  padding: 0px 0px 0px 20px;
-  margin: 0px;
-}
-@media (max-width: 400px) {
-  .buttonPlugin.left.videoData h1 {
-    font-size: 16px;
-    line-height: 24px;
-  }
-}
-@media (min-width: 401px) and (max-width: 800px) {
-  .buttonPlugin.left.videoData h1 {
-    font-size: 20px;
-    line-height: 34px;
-  }
-}
-@media (min-width: 801px) {
-  .buttonPlugin.left.videoData h1 {
-    font-size: 30px;
-    line-height: 44px;
-  }
 }
 .buttonPlugin.right.videoZoom {
   width: 200px;
@@ -4334,6 +4303,37 @@ svg rect {
   margin-right: 5px;
   margin-top: 5px;
   font-size: 20px;
+}
+.buttonPlugin.left.videoData {
+  height: auto;
+  width: 100%;
+  margin-top: 5px;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: rgba(0, 0, 0, 0.6);
+}
+.buttonPlugin.left.videoData h1 {
+  color: white;
+  padding: 0px 0px 0px 20px;
+  margin: 0px;
+}
+@media (max-width: 400px) {
+  .buttonPlugin.left.videoData h1 {
+    font-size: 16px;
+    line-height: 24px;
+  }
+}
+@media (min-width: 401px) and (max-width: 800px) {
+  .buttonPlugin.left.videoData h1 {
+    font-size: 20px;
+    line-height: 34px;
+  }
+}
+@media (min-width: 801px) {
+  .buttonPlugin.left.videoData h1 {
+    font-size: 30px;
+    line-height: 44px;
+  }
 }
 .buttonPluginPopUp.showViewModeButton {
   background-image: none;
@@ -5015,6 +5015,12 @@ input[type=range]:focus::-ms-fill-upper {
 .cc-floating.cc-theme-edgeless .cc-btn + .cc-btn {
   margin-left: 0;
 }
+.buttonPlugin.AirPlayButton {
+  background-position: -1100% -100%;
+}
+.buttonPlugin.AirPlayButton.not-available {
+  opacity: 0.4;
+}
 .paella-profile-button {
   background-color: lightgray;
   border: none;
@@ -5026,12 +5032,6 @@ input[type=range]:focus::-ms-fill-upper {
 }
 .paella-profile-button:active {
   background-color: #000000;
-}
-.buttonPlugin.AirPlayButton {
-  background-position: -1100% -100%;
-}
-.buttonPlugin.AirPlayButton.not-available {
-  opacity: 0.4;
 }
 .buttonPlugin.legal {
   pointer-events: all;

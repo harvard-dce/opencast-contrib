@@ -174,12 +174,11 @@ class Opencast {
 
       // auth-results not present, some other error
       if (authResultsAvailable === false) {
-        paella.debug.log('Seach failed, response:  ' + jsonData);
+        paella.debug.log('Search failed, response:  ' + jsonData);
         var message = 'Cannot access specified video; authorization failed (' + jsonData + ')';
-        paella.messageBox.showError(message);
-        $(document).trigger(paella.events.error, {
-          error: message
-        });
+        // #DCE OPC-621 use common function to show error and send error message
+        // TODO: contrib back if still issue in OC dev
+        paella.opencast.showLoadErrorMessage(message);
       }
       // (MATT-2212) DCE auth redirect is performed within the getEpisode()
       // failure path (via isHarvardDceAuthRedirect below)
@@ -192,22 +191,45 @@ class Opencast {
   // This method is used when getEpisode fails in order to determine if
   // auth redirect is possible (MATT-2212)
   doHarvardDceAuthRedirect(jsonData) {
+    // #DCE OPC-621 Special static iframe name used in Immersive Classroom
+    // If changed here, must be changed in API plugin and iFrameEmbedApi.js
+    const IC_PLAYER_IFRAME_NAME_PREFIX = 'DCE-iframe-API';
+    // Parse json data auth results (existing process)
     if (jsonData && jsonData[ 'dce-auth-results']) {
       var authResult = jsonData[ 'dce-auth-results'];
       if (authResult && authResult.dceReturnStatus) {
         var returnStatus = authResult.dceReturnStatus;
+        // #DCE OPC-621 Alert parent of 401 in case it can handle auth
+        // outside of the player
+        if ('401' ==  returnStatus && authResult.dceLocation && window.parent) {
+          const redir = new URL(authResult.dceLocation);
+          const updateMessage = {
+            sender: window.name, // equates to the iFrame name
+            name: '401',
+            authUrl: redir.origin + redir.pathname
+          };
+          // Asynch to queue the post request outside this flow
+          setTimeout(function(){
+            window.parent.postMessage(updateMessage, '*');
+          }, 0);
+        }
+        // #DCE OPC-621 On Immersive Classroom embedded players, let parent do auth
+        if (window.name.startsWith(IC_PLAYER_IFRAME_NAME_PREFIX)) {
+          window.console.log(`Waiting for parent to auth redirect for player iframe '${window.name}'`);
+        }
         // #DCE OPC-554-new-auth 404 is returned when the course is not in
         // the auth db or there are no rules defined
         // for the requested resource in the auth db.
-        if (('401' == returnStatus || '403' == returnStatus || '404' == returnStatus) && authResult.dceLocation) {
-          window.location.replace(authResult.dceLocation);
+        else if (('401' == returnStatus || '403' == returnStatus || '404' == returnStatus) && authResult.dceLocation) {
+          // Asynch timeout to put the redirect into another process flow
+          setTimeout(function(){
+            window.location.replace(authResult.dceLocation);
+          }, 10);
         } else {
-          var message = 'Cannot access specified video; authorization failed (' + authResult.dceErrorMessage + ')';
+          var message = `Cannot access specified video; authorization failed (${authResult.dceErrorMessage})`;
           paella.debug.log(message);
-          paella.messageBox.showError(message);
-          $(document).trigger(paella.events.error, {
-            error: message
-          });
+          // #DCE OPC-621 use common function to show error and send error message
+          paella.opencast.showLoadErrorMessage(message);
         }
       }
     }

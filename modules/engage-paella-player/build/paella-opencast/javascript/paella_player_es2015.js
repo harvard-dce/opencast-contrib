@@ -22,7 +22,7 @@ var GlobalParams = {
 
 window.paella = window.paella || {};
 paella.player = null;
-paella.version = "6.5.6 - build: 54b364b6b3";
+paella.version = "6.5.6 - build: 2ce501da1c";
 
 (function buildBaseUrl() {
 	if (window.paella_debug_baseUrl) {
@@ -2861,8 +2861,9 @@ paella.audioFactories.MultiformatAudioFactory = MultiformatAudioFactory;
 */
 /* #DCE OPC-374, OPC-357 MATT-2502 override default video rectangle dimensions
  * to fit extra wide live combo (still needed in Paella v6.2.0)
- */
-/* #DCE OPC-407 override setCurrent time and more video event debug logs */
+ * #DCE OPC-407 override setCurrent time and more video event debug logs
+ * #DCE OPC-683 Patch for HLS seek & synch hanging for apple devices (Safari)
+*/
 (() => {
 
 paella.Profiles = {
@@ -3541,6 +3542,21 @@ class VideoElementBase extends paella.VideoRect {
 		return paella_DeferredNotImplemented();
 	}
 
+	// #DCE OPC-683 Safari seek
+	getVideoReadyState() {
+		return paella_DeferredNotImplemented();
+	}
+
+	// #DCE OPC-683 Safari seek
+	getVideoStateData() {
+		return paella_DeferredNotImplemented();
+	}
+
+	// #DCE OPC-683 Safari seek
+	isSeeking() {
+		return paella_DeferredNotImplemented();
+	}
+
 	play() {
 		paella.log.debug("TODO: implement play() function in your VideoElementBase subclass");
 		return paella_DeferredNotImplemented();
@@ -3700,9 +3716,6 @@ class Html5Video extends paella.VideoElementBase {
 
 		this._streamName = streamName || 'mp4';
 		this._playbackRate = 1;
-		// #DCE OPC-407 the seeking state of this player
-		// (ref videoContainer's _isSeekingCount)
-		this._isSeeking = false;
 
 		if (this._stream.sources[this._streamName]) {
 			this._stream.sources[this._streamName].sort(function (a, b) {
@@ -3712,7 +3725,6 @@ class Html5Video extends paella.VideoElementBase {
 
 		this.video.preload = "auto";
 		this.video.setAttribute("playsinline","");
-		//this.video.setAttribute("tabindex","-1");
 
 		this._configureVideoEvents(this.video);
 	}
@@ -3727,7 +3739,7 @@ class Html5Video extends paella.VideoElementBase {
 					delete this._initialCurrentTime;
 				}
 				this._callReadyEvent();
-			// #DCE OPC-552 disable when reloading TODO: make upstream patch
+			// #DCE OPC-552 disable when reloading TODO: make upstream patch?
 			} else if (this.video.readyState==1) {
 				this._ready = false;
 			}
@@ -3735,7 +3747,7 @@ class Html5Video extends paella.VideoElementBase {
 
 		// #DCE OPC-407 utility log
 		this.debugEventVideoStatus = (event) => {
-			paella.log.debug(`HTML5: video event '${event}' on '${this._identifier}(${this.stream.content})',  seekingFlag: ${this._isSeeking}, videoDur: '${this.video? this.video.duration: 0}' `);
+			paella.log.debug(`HTML5: video event '${event}' on '${this._identifier}(${this.stream.content})', ${JSON.stringify(this.getVideoStateData())}`);
 		}
 
 		let evtCallback = (event) => { onProgress.apply(this,[event]); }
@@ -3749,10 +3761,12 @@ class Html5Video extends paella.VideoElementBase {
 		// Save current time to resume video
 		$(this.video).bind('timeupdate', (evt) => {
 			if (!this._ready) {
+				// #DCE OPC-683 TODO: check if readyState is 4?
 				this._ready = true; // #DCE OPC-357 for hls.js
+				this.debugEventVideoStatus('timeupdate set _ready to true');
 			}
 			this._resumeCurrentTime = this.video.currentTime;
-			this.debugEventVideoStatus('timeupdate');
+			// Timeupdate happens too frequently to debug log!
 		});
 
 		$(this.video).bind('ended',(evt) => {
@@ -3767,23 +3781,8 @@ class Html5Video extends paella.VideoElementBase {
 			this.debugEventVideoStatus('emptied');
 		});
 
+		// #DCE OPC-683 cleaned up events for debugging
 		// #DCE OPC-407
-		$(this.video).bind('seeking', evt => {
-			this._isSeeking = true; // set seek flag for video
-			this.debugEventVideoStatus('seeking');
-		});
-		$(this.video).bind('seeked', evt => {
-			this._isSeeking = false; // update seek flag for video
-			this.debugEventVideoStatus('seeked');
-		});
-		$(this.video).bind('stalled', evt => { // failed to fetch data, but still trying
-			this.debugEventVideoStatus('stalled');
-		});
-		$(this.video).bind('loadeddata', evt => {
-			this._isSeeking = false; // make sure seek flag is off
-			this.debugEventVideoStatus('loadeddata');
-		});
-
 		// #DCE OPC-357 more events for HLS debugging
 		let eventNames = [
 			'durationchange',
@@ -3793,10 +3792,22 @@ class Html5Video extends paella.VideoElementBase {
 			'playing',
 			'pause',
 			'waiting',
+			'seeking',
+			'seeked',
 			'ratechange',
 			'volumechange',
 			'complete',
 			'audioprocess',
+			'progress',
+			'loadstart',
+			'loadeddata',
+			'loadedmetadata',
+			'canplay',
+			'oncanplay',
+			'complete',
+			'loadeddata',
+			'audioprocess',
+			'error'
 		];
 
 		eventNames.forEach((event) => {
@@ -3809,10 +3820,11 @@ class Html5Video extends paella.VideoElementBase {
 		// Fix safari setQuality bug
 		if (paella.utils.userAgent.browser.Safari) {
 			$(this.video).bind('canplay canplaythrough', (evt) => {
-				// #DCE TODO: submit patch upstream (0 is a valid true time!)
-				(this._resumeCurrentTime == 0 || this._resumeCurrentTime)
-				 && (this.video.currentTime = this._resumeCurrentTime);
-				this._isSeeking = false; // #DCE OPC-407 make sure seek flag is off
+				// TODO: verify if this is still needed for Safari mobile toggle
+				// Might not be needed for HLS, but possibly needed for progressive
+				// #DCE DCEs Paella 6x patch for 0 is a valid true time
+				// (this._resumeCurrentTime == 0 || this._resumeCurrentTime)
+				// && (this.video.currentTime = this._resumeCurrentTime);
 				this.debugEventVideoStatus('canplay canplaythrough');
 			});
 		}
@@ -3935,6 +3947,40 @@ class Html5Video extends paella.VideoElementBase {
 				});
 			});
 		});
+	}
+
+	// #DCE OPC-683 Safari seek logging
+	// This is more run time specific data than getVideoData
+	getVideoStateData() {
+		if (this.video && this.stream) {
+			return {
+				name: this.stream.content,
+				videoId: this.video.id,
+				role: this.stream.role,
+				videoReadyCode: this.video.readyState,
+				isSeeking: this.video.seeking,
+				isPaused: this.video.paused,
+				currentTime: this.video.currentTime
+			}
+			return 'unknown video or stream';
+		}
+	}
+
+	// #DCE OPC-683 Safari seek
+	isSeeking() {
+		if (this.video && this.ready) {
+			return  this.video.seeking;
+		}
+		return false;
+	}
+
+	// #DCE OPC-683 Safari seek
+	getVideoReadyState() {
+		if (this.video && this.ready) {
+			return  this.video.readyState;
+		}
+		// unknown state
+		return 0;
 	}
 
 	setPosterFrame(url) {
@@ -4145,43 +4191,54 @@ class Html5Video extends paella.VideoElementBase {
 		});
 	}
 
-	// #DCE OPC-552, OPC-407  DCE seek protection. TODO: submit upstream?
+	// #DCE OPC-552, OPC-407  DCE seek protection. TODO: verify this is still needed for browsers & if still needed in upgrade code
 	setCurrentTime(time) {
 	 time = parseFloat(time).toFixed(3); // #DCE OPC-407 simplify for Safari
-	 let callStackId = Math.floor((Math.random()*100) + 1); // random number for psudeo call stack/thread id
-	 paella.log.debug(`HTML5: setCurrentTime for '${this.stream.content}' time '${time}', callStackId:${callStackId}`);
+	 let callStackId = Math.floor((Math.random()*100) + 1); // random number for pseudo call stack/thread id
+	 paella.log.debug(`HTML5: setCurrentTime '${time}', state=${JSON.stringify(this.getVideoStateData())}, callStackId:${callStackId}, `);
+	 let This = this;
 	 return new Promise(resolve => {
-	   let paused = this.video.paused;
-	   let currentTime = this.video.currentTime;
-	   let This = this;
-	   let anyVideosInSeek = paella.player.videoContainer.areAnyVideosInSeek();
-	   paella.log.debug(`HTML5: setCurrentTime for '${this.stream.content}' time '${time}' is already seeking = ${this._isSeeking}, Seeking including this one: ${anyVideosInSeek}, callStackId:${callStackId}`);
-	   let onSeek = function () {
-	     // #DCE remove the players seek tag and remove it from the seeking player collection
-	     This._isSeeking = false;
+	   let wasPaused = This.video.paused;
+	   let currentTime = This.video.currentTime;
+	   let onSeek = function (event) {
+			 if (This.getVideoReadyState() < 4) {
+				paella.log.debug(`HTML5: wait for ready state to be 4, currently ${This.getVideoReadyState()} on event '${event.type}' video=${JSON.stringify(This.getVideoStateData())}`);
+				// Remove previous and adding a new progress listener
+				This.video.removeEventListener('progress', onSeek);
+				This.video.addEventListener('progress', onSeek, false);
+				return;
+			 } else {
+				paella.log.debug(`HTML5: ready status ${This.getVideoReadyState()} on event '${event.type}' video=${JSON.stringify(This.getVideoStateData())}`);
+			 }
+			 // Remove this player from the seeking collection
 	     paella.player.videoContainer._seekingPlayers.delete(This);
-	     This.video.removeEventListener('seeked', onSeek, false);
-	     let anyVideosInSeek = paella.player.videoContainer.areAnyVideosInSeek(); // retest seeking count
-	     paella.log.debug(`HTML5: in "onSeek" handler for '${This.stream.content}' time '${time}', Seeking including this one: ${anyVideosInSeek}, callStackId:${callStackId}`);
-	     if (!paused) {
-	        // #DCE OPC-407 this will only start playing the video when all players have finished seeking.
-	        paella.player.videoContainer.playIfNonAreSeeking(This);
-	     }
+			 // Remove progress listeners
+	     This.video.removeEventListener('seeked', onSeek);
+	     This.video.removeEventListener('progress', onSeek);
+	     // Debug if any other videos are still in seek state
+	     let anyVideosInSeek = paella.player.videoContainer.areAnyVideosInSeek();
+	     paella.log.debug(`HTML5: "onSeek" handler, time '${time}', Seeking including this one: ${anyVideosInSeek}, callStackId:${callStackId}, paused=${wasPaused} state=${JSON.stringify(This.getVideoStateData())}`);
+	     if (!wasPaused) {
+				paella.log.debug(`HTML5: "onSeek" video was playing before seek, about to check if video can be set to play for '${This.stream?.content}' `);
+				// #DCE OPC-407 this will only start playing the video when all players have finished seeking.
+				paella.player.videoContainer.playIfNonAreSeeking(This, callStackId);
+	     } else {
+				paella.log.debug(`HTML5: "onSeek" video was paused before seek, all done seek process for '${This.stream?.content}' '${This.getVideoStateData()}'`);
+			 }
 	     resolve();
 	   };
 
-	   if ((!this._isSeeking) && (time === 0 || time) && !isNaN(time)) {
-	     paella.log.debug(`HTML5: setting is Seeking to TRUE for '${this.stream.content}' for time ${time}, callStackId:${callStackId}`);
-	     this._isSeeking = true;
-	     paella.player.videoContainer._seekingPlayers.add(this);
-	     this.pause().then(() => {
-	       paella.log.debug(`HTML5: setCurrentTime on video element directly: ${time} '${this.stream.content}' was paused = ${paused}, is now paused = ${this.video.paused} currentTime = ${this.video.currentTime}, callStackId:${callStackId}`);
-	       this.video.addEventListener('seeked', onSeek);
+	   if ((!This.isSeeking()) && (time === 0 || time) && !isNaN(time)) {
+	     paella.log.debug(`HTML5: add to SEEKING PLAYERS '${This.stream?.content}' for time ${time}, callStackId:${callStackId} state=${JSON.stringify(This.getVideoStateData())}`);
+	     paella.player.videoContainer._seekingPlayers.add(This);
+	     This.pause().then(() => {
+	       paella.log.debug(`HTML5: CALLING setCurrentTime on video element directly: ${time} '${This.stream?.content}' was paused = ${wasPaused}, is now paused = ${This.video.paused} currentTime = ${This.video.currentTime}, callStackId:${callStackId} state=${JSON.stringify(This.getVideoStateData())}`);
+	       This.video.addEventListener('seeked', onSeek);
 	       // #DCE OPC-407 Warning don't use '"video.fastSeek" here. It creates a target estimate and does not go to requested time in Safari
-	       this.video.currentTime = time;
+	       This.video.currentTime = time;
 	     });
 	   } else {
-	     paella.log.debug(`HTML5: setCurrentTime *NOT SETTING TIME* (already seeking): ${time} '${this.stream.content}' was paused = ${paused}, is now paused = ${this.video.paused} currentTime = ${this.video.currentTime}, callStackId:${callStackId}`);
+	     paella.log.debug(`HTML5: setCurrentTime *NOT SETTING TIME* (already seeking): ${time} '${This.stream?.content}' was paused = ${wasPaused}, is now paused = ${This.video?.paused} currentTime = ${This.video?.currentTime}, callStackId:${callStackId} state=${JSON.stringify(This.getVideoStateData())}`);
 	   }
 	 });
 	}
@@ -5132,24 +5189,31 @@ class VideoContainerBase extends paella.DomNode {
 	// #DCE OPC-455 return true if any video in container in an active seek
 	areAnyVideosInSeek () {
 		let seekingCount = this._seekingPlayers.size;
-		paella.log.debug(`HTML5: AnySeeking? seeking players: '${seekingCount}'.`);
-		this._seekingPlayers.forEach(p => paella.log.debug(`HTML5: AnySeeking? Still seeking '${p.stream.content}'`));
+		if (seekingCount > 0) {
+			this._seekingPlayers.forEach(p => {
+				paella.log.debug(`-- Video in SEEK '${p.stream.content}' ${JSON.stringify(p.getVideoStateData())}`);
+			});
+		}
+		// paella.log.debug(`HTML5: AnySeeking? seeking players: '${seekingCount}'.`);
+		// this._seekingPlayers.forEach(p => paella.log.debug(`HTML5: AnySeeking? Still seeking '${p.stream.conteånt}'`));
 		return seekingCount > 0;
 	}
 
 	// #DCE OPC-455 return true if any video in container in an active seek or active wait to play
-	areAnyVideosInSeekOrWaitToPlay () {
+	areAnyVideosWaitingToPlay () {
 		let waitingForPlayCount = this._waitingToPlayPlayers.size;
-		paella.log.debug(`HTML5: AnyWaitingToPlay? waiting to player players: '${waitingForPlayCount}'.`);
-		this._waitingToPlayPlayers.forEach(p => paella.log.debug(`HTML5: AnySeeking? Waiting to Play '${p.stream.content}'`));
-		return this.areAnyVideosInSeek() && waitingForPlayCount > 0;
+		if (waitingForPlayCount > 0) {
+			this._waitingToPlayPlayers.forEach(p => {
+				paella.log.debug(`-- Video waiting to PLAY '${p.stream.content}' ${JSON.stringify(p.getVideoStateData())}`);
+			});
+		}
+		return waitingForPlayCount > 0;
 	}
 
 	// #DCE OPC-407 only play if all players are not seeking
 	playIfNonAreSeeking (player, callStackId) {
 		if (!player || !player.stream) return;
 		this._waitingToPlayPlayers.add(player);
-
 		// #DCE OPC-439 account for start trim when setting player time
 		let currentTrimmedTimeToSeek = 0;
 		if (!this.areAnyVideosInSeek()) {
@@ -5180,7 +5244,7 @@ class VideoContainerBase extends paella.DomNode {
 				}
 			});
 		} else {
-			paella.log.debug(`HTML5: other players are still seeking, '${player.stream.content}' will wait until all finish seeking, callStackId:${callStackId}.`);
+			this.areAnyVideosWaitingToPlay();
 		}
 	}
 
@@ -5235,31 +5299,39 @@ class VideoContainerBase extends paella.DomNode {
 			let doGroupSynchScrub = false; // OPC-458 Safari new tab open synch fix
 			let doGroupSynchToggle = self._syncHits % 2 > 0;
 			streams.forEach(v => {
-			 if (paella.player.videoContainer.isMonostream || !v.video) {
-			   return;
-			 }
-			 if (v._isSeeking) {
-			   paella.log.debug(`HTML5: Not synching video, video '${v._identifier}' (${v._stream.content}) is already seeking`);
-			   return;
+			 // Conditions for skipping sync for this stream
+			 if (self.isMonostream
+				|| !v.video
+				// Make sure this video is not in seek state
+				|| v.isSeeking()
+				// Make sure a seek did not happen since previous check in last cycle
+				// This was possibly the race condition from Safari
+				|| self.areAnyVideosInSeek())
+				{
+					// exit early for this video
+					return;
 			 }
 			 let thisVideoTime = v.video.currentTime;
 			 let diff = Math.abs(thisVideoTime - mainVideoTime);
-			 let anyVideosInSeek = paella.player.videoContainer.areAnyVideosInSeek();
-			 paella.log.debug(`HTML5-SYNC: About to check sync on '${v._stream.content}' (${v._identifier}) ${v.video.paused?'paused': 'running'}' timediff=${diff} thisVideoTime = ${thisVideoTime} mainVideo=${mainVideoTime} containerTrimTime=${currentTrimmedTime}, AnySeeking? ${anyVideosInSeek}`);
-			 if (v !== paella.player.videoContainer.streamProvider.mainAudioPlayer && !v.video.paused && diff > self._maxSyncDelay) {
-			   let seekTime = shortbuffer > mainVideoTime ? shortbuffer : parseFloat(mainVideoTime).toFixed(3); // #DCE OPC-439 synch to buffer offset of main video time
-			   if (!isPaused) {
-			     seekTime += (self._maxSyncDelay - shortbuffer); // add future buffer to catch running audio
-			   }
-			   if (doGroupSynchToggle) {
-			     doGroupSynchScrub = true;
-			     paella.log.debug(`HTML5: Will do group sync for '${v._stream.content}' (${v._identifier}) paused=${v.video.paused}, timediff=${diff}, settingToTime=${seekTime}`);
-			   } else {
-			     paella.log.debug(`HTML5: About to DIRECTLY seek synch video '${v._stream.content}' (${v._identifier}) paused=${v.video.paused}, timediff=${diff}, settingToTime=${seekTime}`);
-			     updated.push(v);
-			     promises.push(v.setCurrentTime(seekTime));
-			   }
-			  }
+			 // Don't synch the video that is running the audio track, synch the non-audio video to the audio video
+			 if ( v !== paella.player.videoContainer.streamProvider.mainAudioPlayer
+					// Don't do synch if this video is in a paused state
+					&& !v.video.paused
+					&& diff > self._maxSyncDelay)
+				{
+					let seekTime = shortbuffer > mainVideoTime ? shortbuffer : parseFloat(mainVideoTime).toFixed(3); // #DCE OPC-439 synch to buffer offset of main video time
+					if (!isPaused) {
+						seekTime += (self._maxSyncDelay - shortbuffer); // add future buffer to catch running audio
+					}
+					if (doGroupSynchToggle) {
+						doGroupSynchScrub = true;
+						paella.log.debug(`HTML5: Will do group sync for '${v._stream.content}' (${v._identifier}) paused=${v.video.paused}, timediff=${diff}, settingToTime=${seekTime}`);
+					} else {
+						paella.log.debug(`HTML5: About to DIRECTLY seek synch video '${v._stream.content}' (${v._identifier}) paused=${v.video.paused}, timediff=${diff}, settingToTime=${seekTime}`);
+						updated.push(v);
+						promises.push(v.setCurrentTime(seekTime));
+					}
+				}
 			});
 			if (doGroupSynchScrub || promises.length > 0) {
 			 self._syncHits++;
@@ -6005,7 +6077,12 @@ class VideoContainer extends paella.VideoContainerBase {
 			// TODO: Make UPV patches for following
 			// #DCE OPC-454 don't play after trim end
 			let wasPlaying, isTrimEnd = false;
-			this.trimming()
+			let duration;
+			this.duration(true)
+				.then((dur) => {
+					duration = dur;
+					return this.trimming();
+				})
 				.then((trimmingData) => {
 					if (trimmingData.enabled) {
 						time += trimmingData.start;
@@ -6017,8 +6094,13 @@ class VideoContainer extends paella.VideoContainerBase {
 							time = trimmingData.end;
 							isTrimEnd = true; // #DCE OPC-454
 						}
+					} else {
+						if (Math.floor(duration) <= time) {
+							// protection from seeking to endpoint of video
+							time = Math.floor(duration) - 5;
+						}
 					}
-					//#DCE OPC-428 load the load spinner while #DCE OPC-407 pause if not already paused before setting time
+ 					//#DCE OPC-428 load the load spinner while #DCE OPC-407 pause if not already paused before setting time
 					paella.player.loader.seekload();
 					this._seeking = true;
 					return this.paused();
@@ -6035,9 +6117,6 @@ class VideoContainer extends paella.VideoContainerBase {
 					return this.streamProvider.callPlayerFunction('setCurrentTime', time);
 				})
 				.then(() => {
-					return this.duration(true);
-				})
-				.then((duration) => {
 					// #DCE OPC-428 take loader overlay off after seeking to the new time
 					paella.player.loader.loadComplete();
 					this._seeking = false;
@@ -21266,12 +21345,11 @@ class Opencast {
 
       // auth-results not present, some other error
       if (authResultsAvailable === false) {
-        paella.debug.log('Seach failed, response:  ' + jsonData);
+        paella.debug.log('Search failed, response:  ' + jsonData);
         var message = 'Cannot access specified video; authorization failed (' + jsonData + ')';
-        paella.messageBox.showError(message);
-        $(document).trigger(paella.events.error, {
-          error: message
-        });
+        // #DCE OPC-621 use common function to show error and send error message
+        // TODO: contrib back if still issue in OC dev
+        paella.opencast.showLoadErrorMessage(message);
       }
       // (MATT-2212) DCE auth redirect is performed within the getEpisode()
       // failure path (via isHarvardDceAuthRedirect below)
@@ -21284,22 +21362,45 @@ class Opencast {
   // This method is used when getEpisode fails in order to determine if
   // auth redirect is possible (MATT-2212)
   doHarvardDceAuthRedirect(jsonData) {
+    // #DCE OPC-621 Special static iframe name used in Immersive Classroom
+    // If changed here, must be changed in API plugin and iFrameEmbedApi.js
+    const IC_PLAYER_IFRAME_NAME_PREFIX = 'DCE-iframe-API';
+    // Parse json data auth results (existing process)
     if (jsonData && jsonData[ 'dce-auth-results']) {
       var authResult = jsonData[ 'dce-auth-results'];
       if (authResult && authResult.dceReturnStatus) {
         var returnStatus = authResult.dceReturnStatus;
+        // #DCE OPC-621 Alert parent of 401 in case it can handle auth
+        // outside of the player
+        if ('401' ==  returnStatus && authResult.dceLocation && window.parent) {
+          const redir = new URL(authResult.dceLocation);
+          const updateMessage = {
+            sender: window.name, // equates to the iFrame name
+            name: '401',
+            authUrl: redir.origin + redir.pathname
+          };
+          // Asynch to queue the post request outside this flow
+          setTimeout(function(){
+            window.parent.postMessage(updateMessage, '*');
+          }, 0);
+        }
+        // #DCE OPC-621 On Immersive Classroom embedded players, let parent do auth
+        if (window.name.startsWith(IC_PLAYER_IFRAME_NAME_PREFIX)) {
+          window.console.log(`Waiting for parent to auth redirect for player iframe '${window.name}'`);
+        }
         // #DCE OPC-554-new-auth 404 is returned when the course is not in
         // the auth db or there are no rules defined
         // for the requested resource in the auth db.
-        if (('401' == returnStatus || '403' == returnStatus || '404' == returnStatus) && authResult.dceLocation) {
-          window.location.replace(authResult.dceLocation);
+        else if (('401' == returnStatus || '403' == returnStatus || '404' == returnStatus) && authResult.dceLocation) {
+          // Asynch timeout to put the redirect into another process flow
+          setTimeout(function(){
+            window.location.replace(authResult.dceLocation);
+          }, 10);
         } else {
-          var message = 'Cannot access specified video; authorization failed (' + authResult.dceErrorMessage + ')';
+          var message = `Cannot access specified video; authorization failed (${authResult.dceErrorMessage})`;
           paella.debug.log(message);
-          paella.messageBox.showError(message);
-          $(document).trigger(paella.events.error, {
-            error: message
-          });
+          // #DCE OPC-621 use common function to show error and send error message
+          paella.opencast.showLoadErrorMessage(message);
         }
       }
     }
@@ -22504,12 +22605,15 @@ function loadOpencastPaella(containerId) {
               var converter = new OpencastToPaellaConverter();
               var data = converter.convertToDataJson(episode);
               if (data.streams.length < 1) {
-                paella.messageBox.showError(paella.utils.dictionary.translate('Error loading video! \
-                No video tracks found'));
+                // #DCE OPC-621 use common function to show error and send error message
+                paella.opencast.showLoadErrorMessage(paella.dictionary.translate('Error loading video! \
+                  No video tracks found'));
               }
               else {
                 // #DCE start custom data processing ----
                 dceCustomLoadProcessing(data);
+                // #DCE OPC-621 Alert API parent of auth resolved and metadata
+                dceApiWrapperSendLoadData(episode);
                 // #DCE end ----
                 resolve(data);
               }
@@ -22528,7 +22632,8 @@ function loadOpencastPaella(containerId) {
                 )
                 .replace(/\{id\}/g, paella.utils.parameters.get('id') || ''
                 );
-                paella.messageBox.showError(errMsg);
+                // #DCE OPC-621 use common function to show error and send error message
+                paella.opencast.showLoadErrorMessage(errMsg);
               } else {
                 // #DCE OPC-374 Opencast makes user log in if 0 results,
                 // DCE has already done auth by this point and knows
@@ -22536,7 +22641,8 @@ function loadOpencastPaella(containerId) {
                 errMsg = paella.utils.dictionary.translate(
                   'Error loading video {id}'
                 ).replace(/\{id\}/g, paella.utils.parameters.get('id') || '');
-                paella.messageBox.showError(errMsg);
+                // #DCE OPC-621 use common function to show error and send error message
+                paella.opencast.showLoadErrorMessage(errMsg);
               }
             });
             // TODO: finish by re-throwing the reject()?
@@ -22567,11 +22673,11 @@ function dceCustomLoadProcessing(data) {
   // They can only deal with one m3u8 master per flavor.
   // In order to allow a user to toggle video resolutions for the live HLS
   // Video, the second HLS manifest is extracted from the first (and only)
-  // track source, and put into a dummy seconday source.
+  // track source, and put into a dummy secondary source.
   // The SingleVideoToggle plugin checks for paella.dce.hlsLiveToggleV1 in
   // order to facilitate video toggle between the first source
   // and the secondary source. The SingleVideoToggle plugin is the control
-  // bar UI plugin that allows the user to swith HLS live resolution.
+  // bar UI plugin that allows the user to switch HLS live resolution.
   if (paella.dce.sources.length == 1
       && paella.dce.sources[0].sources
       && paella.dce.sources[0].sources.hls
@@ -22597,7 +22703,7 @@ function dceCustomLoadProcessing(data) {
 
   // #DCE toggle presenter & presentation option when ios (bypass paella5
   // exclusion of presentation video)
-  // This is still necessary in Paellav6x: Hide the slave stream from
+  // This is still necessary in Paella v6x: Hide the slave stream from
   // paella if ios, will be used in singleVideoToggle
   // Toggling video players with profiles and hard swap the main
   // Audio player doesn't work. Safari video elements become "suspended"
@@ -22605,6 +22711,42 @@ function dceCustomLoadProcessing(data) {
     data.streams = [];
     data.streams[0] = paella.dce.sources[0];
   }
+}
+
+/**
+ * DCE ApiWrapperSendLoadData
+ * - #DCE OPC-621, DCE Wrapper API for Immersive Classroom
+ * @param {*} data
+ */
+function dceApiWrapperSendLoadData(episode) {
+  // Alert API wrapper the special condition of auth resolved
+  // Include metadata in the format of YouTube video resource
+  // https://developers.google.com/youtube/v3/docs/videos?hl=en#resource
+  const updateMessage = {
+    sender: window.name, // equates to the iFrame name
+    name: 'onAuthReady',
+    metadata: {
+      'kind': 'dce-opencast#video',
+      'id': episode.mediapackage.id,
+      'snippet': {
+        'publishedAt': episode.mediapackage.start,
+        'title': episode.mediapackage.title,
+        'description': episode.mediapackage.description,
+        'subject': episode.mediapackage.subject,
+        'channelTitle': episode.mediapackage.seriestitle,
+        'channelId': episode.mediapackage.series,
+        'creators': episode.mediapackage.creators
+      },
+      'contentDetails': {
+        // Convert duration from ms to seconds
+        'duration': Number.parseFloat(episode.mediapackage.duration / 1000),
+      }
+    }
+  };
+  // Asynch to queue the post request outside of flow
+  setTimeout(function(){
+    window.parent.postMessage(updateMessage, '*');
+  }, 0);
 }
 
 /**
