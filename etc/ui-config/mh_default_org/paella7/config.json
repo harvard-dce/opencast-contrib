@@ -5,18 +5,18 @@
     "defaultVideoPreview": "/ui/config/paella7/default_preview_landscape.jpg",
     "defaultVideoPreviewPortrait": "/ui/config/paella7/default_preview_portrait.jpg",
 
-    "logLevel": "INFO",
+    "logLevel": "DEBUG",
 
     "accessibility": {
         "clickWithSpacebar": false
     },
 
     "progressIndicator": {
-        "inlineMode": false,
+        "inlineMode": true,
         "showTotal": true,
         "parentContainer": "buttonArea",
         "side": "left",
-        "visible": false,
+        "visible": true,
         "showHandler": true,
         "hideHandlerOnMouseOut": true,
         "showRemainingProgress": true
@@ -61,9 +61,10 @@
         "mainAudioContent": "presenter",
         "videoPreviewAttachment": [
             "presenter/player+preview",
-            "presentation/player+preview"
+            "presentation/player+preview",
+            "other/player+preview"
         ],
-        "theme": "custom_theme",
+        "theme": "dce_theme",
         "hideTimeLineOnLive": false,
         "preventVideoDownload": false,
         "videoCanvas": {
@@ -140,7 +141,15 @@
                     ],
                     "icon": "present-mode-1.svg",
                     "title": "Presentation"
-                }
+                },
+                {
+                    "id": "other",
+                    "content": [
+                        "other"
+                    ],
+                    "icon": "present-mode-1.svg",
+                    "title": "Other"
+                  }
             ],
             "dualVideoContentIds": [
                 "presenter-presentation-dynamic",
@@ -178,7 +187,25 @@
                     ],
                     "icon": "present-mode-3.svg",
                     "title": "Presenter and presentation"
-                }
+                  },
+                  {
+                      "id": "presenter-other",
+                      "content": [
+                          "presenter",
+                          "other"
+                      ],
+                      "icon": "present-mode-3.svg",
+                      "title": "Presenter and other"
+                  },
+                  {
+                      "id": "presentation-other",
+                      "content": [
+                          "presentation",
+                          "other"
+                      ],
+                      "icon": "present-mode-3.svg",
+                      "title": "Presentation and other"
+                    }    
             ],
             "tabIndexStart": 40
         },
@@ -237,6 +264,16 @@
                     ],
                     "icon": "present-mode-4.svg",
                     "title": "Presenter and presentation"
+                },
+                {
+                    "id": "presenter-presentation-other",
+                    "content": [
+                        "presenter",
+                        "presentation",
+                        "other"
+                    ],
+                    "icon": "present-mode-4.svg",
+                    "title": "Presenter and presentation"
                 }
             ],
             "tabIndexStart": 40
@@ -258,8 +295,14 @@
         "es.upv.paella.hlsVideoFormat": {
             "enabled": true,
             "order": 0,
+            "/* #DCE OPC-913 leave as false, Android is sensitive to going HLS native and cannot run DCE m3u8 files */": "*****",
+            "forceNative": false,
             "hlsConfig": {
-                "maxBufferLength": 40
+                "maxBufferLength": 40,
+                "debug": true,
+                "backBufferLength": 90,
+                "lowLatencyMode": true,
+                "startFragPrefetch": true
             },
             "crossOrigin": false,
             "corsConfig": {
@@ -306,14 +349,25 @@
         },
 
         "/* left toolbar buttons*/": "*********************************************************",
+        "/* #DCE override this playPauseButton Ref: https://github.com/polimediaupv/paella-core/pull/364 */": "---------",
         "es.upv.paella.playPauseButton": {
-            "enabled": true,
+            "enabled": false,
             "order": 0,
             "tabIndex": 1,
             "description": "Play and pause button"
         },
+        "es.upv.paella.override.playPauseButton" : {
+          "/* #DCE override playPauseButton */": "---------",
+          "enabled": true,
+          "order": 0,
+          "tabIndex": 1,
+          "ariaKeyshortcuts": "k",
+          "ariaLabelPlay": "Play",
+          "ariaLabelPause": "Pause"
+      },
         "es.upv.paella.customTimeProgressIndicator": {
-            "enabled": true,
+            "/* #DCE disable */": "---------",
+            "enabled": false,
             "textSize": "large",
             "showTotal": true,
             "order": 1
@@ -337,13 +391,14 @@
         "es.upv.paella.playbackRateButton": {
             "enabled": true,
             "side": "left",
-            "order": 4,
+            "order": 19,
             "showIcon": false,
             "rates": [0.75, 1, 1.25, 1.5, 2],
             "menuTitle": "Playback rate",
-            "tabIndex": 4,
+            "tabIndex": 10,
             "popUpType": "no-modal",
-            "description": "Playback rate"
+            "description": "Playback rate",
+            "parentContainer": "settingsGroup"
         },
         "es.upv.paella.volumeButtonPlugin": {
             "enabled": true,
@@ -354,16 +409,16 @@
             "volumeAlwaysVisible": true
         },
 
-
         "/* right toolbar buttons*/": "*********************************************************",
+        "/* #DCE make this a buttonGroup??? */" : "**********",
         "org.opencast.paella.toolsGroupPlugin": {
             "enabled": true,
             "side": "right",
             "groupName": "settingsGroup",
             "description": "Settings",
-            "order": 20,
+            "order": 103,
             "menuTitle": "Settings",
-            "tabIndex": 6,
+            "tabIndex": 10,
             "popUpType": "no-modal"
         },
 
@@ -385,14 +440,17 @@
             "tabIndex": 9,
             "description": "Show slides"
         },
+        "/** #DCE customized to be contained in captionsGroup */": "**********",
         "es.upv.paella.captionsSelectorPlugin": {
-            "enabled": true,
-            "side": "right",
-            "order": 103,
-            "tabIndex": 10,
-            "description": "Captions"
+          "enabled": false,
+          "side": "right",
+          "order": 8,
+          "tabIndex": 8,
+          "parentContainer": "captionsGroup",
+          "description": "Captions"
         },
 
+        "/* #DCE OPC-892 & OPC-910 fullscreenButton */": "---------",
         "es.upv.paella.fullscreenButton": {
             "enabled": true,
             "side": "right",
@@ -400,18 +458,27 @@
             "tabIndex": 11,
             "description": "Fullscreen"
         },
-
+        "es.upv.paella.override.fullscreenButton": {
+            "/* #DCE OPC-892 & OPC-910 fullscreenButton override */": "---------",
+            "enabled": false,
+            "side": "right",
+            "order": 104,
+            "tabIndex": 11,
+            "description": "Fullscreen"
+        },
 
         "/* settings toolbox */": "*********************************************************",
         "org.opencast.paella.descriptionPlugin": {
             "enabled": true,
             "parentContainer": "settingsGroup",
             "order": 10,
+            "tabIndex": 10,
             "description": "Video description and data"
         },
         "es.upv.paella.qualitySelector": {
             "enabled": true,
             "order": 20,
+            "tabIndex": 10,
             "parentContainer": "settingsGroup",
             "description": "Video quality",
             "showIcon": false
@@ -419,18 +486,21 @@
         "es.upv.paella.audioSelector": {
             "enabled": true,
             "parentContainer": "settingsGroup",
-            "order": 30
+            "order": 30,
+            "tabIndex": 10
         },
         "org.opencast.paella.transcriptionsPlugin": {
             "enabled": true,
             "parentContainer": "settingsGroup",
             "order": 40,
+            "tabIndex": 10,
             "description": "Transcriptions"
         },
         "org.opencast.paella.downloadsPlugin": {
             "enabled": true,
             "parentContainer": "settingsGroup",
             "order": 50,
+            "tabIndex": 10,
             "description": "Downloads",
 
             "downloadFlavors": false,
@@ -448,8 +518,9 @@
             ],
             "enableOnWritePermission": true
         },
+        "/* #DCE OPC-905 keyboard short cuts help dynamic override */": "---------",
         "es.upv.paella.keyboardShortcutsHelp": {
-            "enabled": true,
+            "enabled": false,
             "order": 80,
             "description": "Keyboard shortcuts",
             "parentContainer": "settingsGroup",
@@ -457,8 +528,22 @@
             "tabIndex": 7,
             "popUpType": "no-modal"
         },
-        "org.opencast.paella.versionButton": {
+        "es.upv.paella.override.keyboardShortcutsHelp": {
+            "/* #DCE OPC-905 override */":"-----------------------",
+            "/* #DCE OPC-905 override warning1 */":"This plugin contains hardcoded references to other plugin class names",
+            "/* #DCE OPC-905 override warning2 */":"Confirm their continued accuracy after changing other plugins in this config",
             "enabled": true,
+            "side": "right",
+            "order": 6,
+            "description": "Keyboard shortcuts",
+            "dce-not-parentContainer": "settingsGroup",
+            "closeParentPopUp": true,
+            "tabIndex": 6,
+            "popUpType": "no-modal"
+        },
+        "org.opencast.paella.versionButton": {
+            "/* #DCE disable display of repo versions */": "********",
+            "enabled": false,
             "parentContainer": "settingsGroup",
             "order": 90,
             "description": "Opencast player version"
@@ -484,8 +569,9 @@
         },
 
         "/* videocontainer toolbar */": "*********************************************************",
+        "/* #DCE disable the login plugin */": "********",
         "org.opencast.paella.loginPlugin": {
-            "enabled": true,
+            "enabled": false,
             "side": "right",
             "parentContainer": "videoContainer",
             "order": 10,
@@ -503,8 +589,9 @@
             "editorUrl": "/editor-ui/index.html?id={id}"
         },
 
+        "/* #DCE disable this an overlay plugin */": "********",
         "org.opencast.paella.episodesFromSeries": {
-            "enabled": true,
+            "enabled": false,
             "side": "right",
             "parentContainer": "videoContainer",
             "order": 30,
@@ -514,15 +601,20 @@
 
 
         "/* other plugins */": "*********************************************************",
+
+        "/* #DCE customized to be contained in captionsGroup */": "*************************",
         "es.upv.paella.findCaptionsPlugin": {
-            "enabled": false,
+            "enabled": true,
             "side": "right",
+            "parentContainer": "settingsGroup",
             "description": "Search in captions",
-            "order": 10
+            "order": 79,
+            "tabIndex": 10
         },
 
         "es.upv.paella.slideMapProgressBarPlugin": {
-            "enabled": true,
+            "/** #DCE disable */": "********",
+            "enabled": false,
             "markColor": {
                 "mouseOut": "#0A0A0A",
                 "mouseHover": "#9CA3AF"
@@ -578,6 +670,9 @@
 
         "es.upv.paella.defaultShortcuts": {
             "enabled": true,
+            "/* #DCE custom skip back time */": "********",
+            "skipBackwards": 10,
+            "skipForward": 30,
             "validPlaybackRates": [
                 0.75,
                 2,
@@ -600,7 +695,7 @@
 
         "/* user event tracking plugins */": "*********************************************************",
         "es.upv.paella.userEventTracker": {
-            "enabled": false,
+            "enabled": true,
             "context": "userTracking",
             "events": [
                 "PLAY",
@@ -642,10 +737,14 @@
             ]
         },
         "org.opencast.paella.opencast.userTrackingDataPlugin": {
-            "enabled": false,
+            "/* #DCE enabling Opencast usertracking */": "********",
+            "enabled": true,
             "context": [
                 "userTracking"
             ]
+        },
+        "es.upv.paella.matomo.userTrackingDataPlugin": {
+            "enabled": false
         },
         "org.opencast.paella.matomo.userTrackingDataPlugin": {
             "enabled": false,
@@ -666,6 +765,69 @@
                 "1": "${videoId}",
                 "2": "${metadata.series} - ${metadata.seriestitle}",
                 "3": "${metadata.presenters}"
+            }
+        },
+
+        "/* #DCE Harvard Custom Plugins and Overrides */": "*********************************************************",
+
+        "edu.harvard.dce.paella.heartbeatSender": {
+            "enabled": true,
+            "heartBeatTime": 30000,
+            "context": [
+                "heartbeat"
+            ]
+        },
+
+        "edu.harvard.dce.paella.onboarding.dynamic": {
+            "#DCE dynamic":"-----------------------",
+            "#DCE dynamic warning1":"This plugin contains hardcoded references to other plugin class names",
+            "#DCE dynamic warning2":"Confirm their continued accuracy after changing other plugins in this config",
+            "enabled": true
+        },
+        "edu.harvard.dce.paella.infoMenu": {
+            "enabled": true,
+            "side": "right",
+            "parentContainer": "settingsGroup",
+            "description": "Information Links",
+            "order": 5,
+            "tabIndex": 10
+        },
+        "/* #DCE DCE_Single_CaptionToggle_Plugin */": "*****",
+        "edu.harvard.dce.paella.captionTogglePlugin": {
+            "enabled": true,
+            "side": "right",
+            "order": 8,
+            "tabIndex": 8,
+            "description": "Captions",
+            "parentContainer": ""
+        },
+        "/* #DCE es.upv.paella.captionsSelectorPlugin added to captionsGroup */": "******",
+        "/* #DCE es.upv.paella.findCaptionsPlugin added to captionsGroup */": "******",
+
+        "edu.harvard.dce.paella.iFrameApiPlugin": {
+            "enabled": true,
+            "iFrameNamePrefix": "DCE-iframe-API"
+        },
+        "edu.harvard.dce.paella.socialDataTestPlugin": {
+            "enabled": false,
+            "context": [ "timedComments" ]
+        },
+        "edu.harvard.dce.paella.socialDataPlugin": {
+            "enabled": true,
+            "context": [ "timedComments" ]
+        },
+        "edu.harvard.dce.paella.socialPlugin": {
+            "enabled": true,
+            "side": "right",
+            "order": 103,
+            "tabIndex": 9,
+            "timerReloadComments": 5000,
+            "description": "Opencast Social",
+            "ariaLabel": "Opencast Social",
+            "queryParamDisable": "social",
+            "closeActions": {
+                "clickOutside": false,
+                "closeButton": true
             }
         }
     }
