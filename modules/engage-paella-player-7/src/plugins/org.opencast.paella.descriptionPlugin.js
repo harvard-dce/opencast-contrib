@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to The Apereo Foundation under one or more contributor license
  * agreements. See the NOTICE file distributed with this work for additional
  * information regarding copyright ownership.
@@ -18,6 +18,7 @@
  * the License.
  *
  */
+// #DCE overwrite to remove links and only show rows when they have data
 import {
   PopUpButtonPlugin,
   createElementWithHtmlText,
@@ -35,11 +36,12 @@ export default class DescriptionPlugin extends PopUpButtonPlugin {
   async getContent() {
     const metadata = this.player.videoManifest.metadata;
 
+    // #DCE remove all links
     const presenters = metadata.presenters
-      ?.map((p) => `<a href="/engage/ui/index.html?q=${p}">${p}</a>`)
+      ?.map((p) => `${p}`)
       ?.join(', ');
     const contributors = metadata.contributors
-      ?.map((p) => `<a href="/engage/ui/index.html?q=${p}">${p}</a>`)
+      ?.map((p) => `${p}`)
       ?.join(', ');
     const language = metadata.language
       ? (new Intl.DisplayNames([metadata.language], {type: 'language'}))
@@ -53,53 +55,61 @@ export default class DescriptionPlugin extends PopUpButtonPlugin {
         <div class="value"> ${metadata.title || ''} </div>
       </div>
     `, content);
-    createElementWithHtmlText(`
+    // #DCE only show row if there is data
+    metadata.subject && createElementWithHtmlText(`
       <div class="row">
         <div class="key">${translate('Subject')}:</div>
         <div class="value">
-          <a href="/engage/ui/index.html?q=${metadata.subject}">${metadata.subject || ''}</a>
+          ${metadata.subject || ''}
          </div>
       </div>
     `, content);
-    createElementWithHtmlText(`    
+    // #DCE only show row if there is data
+    metadata.description && createElementWithHtmlText(`
       <div class="row">
         <div class="key">${translate('Description')}:</div>
         <div class="value"> ${metadata.description || ''} </div>
       </div>
     `, content);
-    createElementWithHtmlText(`    
+    // #DCE only show row if there is data
+    language && createElementWithHtmlText(`
       <div class="row">
         <div class="key">${translate('Language')}:</div>
         <div class="value"> ${language} </div>
       </div>
     `, content);
-    createElementWithHtmlText(`    
+    // #DCE only show row if there is data
+    metadata.rights && createElementWithHtmlText(`
       <div class="row">
         <div class="key">${translate('Rights')}:</div>
         <div class="value"> ${metadata.rights || ''} </div>
       </div>
     `, content);
-    createElementWithHtmlText(`        
+    // #DCE DON'T SHOW LICENSE - defaults to Creative Commons
+    false && metadata.license && createElementWithHtmlText(`
       <div class="row">
         <div class="key">${translate('License')}:</div>
         <div class="value"> ${metadata.license || ''} </div>
       </div>
     `, content);
-    createElementWithHtmlText(`    
+    // #DCE only show row if there is data
+    metadata.series && createElementWithHtmlText(`
       <div class="row">
         <div class="key">${translate('Series')}:</div>
         <div class="value">
-          <a href="/engage/ui/index.html?epFrom=${metadata.series}">${metadata.seriestitle || ''}</a>
+          ${metadata.seriestitle || ''}
         </div>
       </div>
     `, content);
-    createElementWithHtmlText(`
+    // #DCE only show row if there is data
+    presenters && createElementWithHtmlText(`
       <div class="row">
-        <div class="key">${translate('Presenter(s)')}:</div>
+        <div class="key">${translate('Instructor(s)')}:</div>
         <div class="value"> ${presenters || ''} </div>
       </div>
     `, content);
-    createElementWithHtmlText(`
+    // #DCE only show row if there is data
+    contributors && createElementWithHtmlText(`
       <div class="row">
         <div class="key">${translate('Contributor(s)')}:</div>
         <div class="value"> ${contributors || ''} </div>
@@ -107,7 +117,7 @@ export default class DescriptionPlugin extends PopUpButtonPlugin {
     `, content);
     createElementWithHtmlText(`
       <div class="row">
-        <div class="key">${translate('Start date')}:</div>
+        <div class="key">${translate('Date')}:</div>
         <div class="value"> ${(new Date(metadata.startDate)).toLocaleDateString()} </div>
       </div>
     `, content);
@@ -117,22 +127,23 @@ export default class DescriptionPlugin extends PopUpButtonPlugin {
         <div class="value"> ${utils.secondsToTime(metadata.duration) || ''} </div>
       </div>
     `, content);
-    createElementWithHtmlText(`    
+    // #DCE only show row if there is data
+    metadata.location && createElementWithHtmlText(`
       <div class="row">
         <div class="key">${translate('Location')}:</div>
-        <div class="value"> ${metadata.location || ''} </div>
+        <div class="value">${metadata.location || ''} </div>
       </div>
     `, content);
-    createElementWithHtmlText(`    
+    createElementWithHtmlText(`
       <div class="row">
         <div class="key">${translate('UID')}:</div>
         <div class="value"> 
-          <a href="?id=${metadata.UID}">${metadata.UID}</a>
+          ${metadata.UID}
         </div>
       </div>
     `, content);
     if (metadata.views) {
-      createElementWithHtmlText(`    
+      createElementWithHtmlText(`
         <div class="row">
           <div class="key">${translate('Views')}:</div>
           <div class="value"> ${metadata.views} </div>

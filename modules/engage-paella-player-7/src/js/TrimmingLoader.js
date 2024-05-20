@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to The Apereo Foundation under one or more contributor license
  * agreements. See the NOTICE file distributed with this work for additional
  * information regarding copyright ownership.
@@ -19,6 +19,7 @@
  *
  */
 
+// #DCE TODO: make OC upstream pull for change
 import { getUrlFromOpencastServer } from './PaellaOpencast';
 
 export const loadTrimming = async (player,videoId) => {
@@ -31,10 +32,13 @@ export const loadTrimming = async (player,videoId) => {
       const data = await response.json();
       const annotation = Array.isArray(data.annotations?.annotation) ?
         data.annotations?.annotation[0] : data.annotations?.annotation;
-      const value = JSON.parse(annotation.value).trimming;
-      trimmingData.start = value.start;
-      trimmingData.end = value.end;
-      trimmingData.enabled = trimmingData.start < trimmingData.end && trimmingData.end > 0;
+      // #DCE test for annotations before accessing variable
+      if (annotation) {
+        const value = JSON.parse(annotation.value).trimming;
+        trimmingData.start = value.start;
+        trimmingData.end = value.end;
+        trimmingData.enabled = trimmingData.start < trimmingData.end && trimmingData.end > 0;
+      }
     }
   }
   catch (e) {

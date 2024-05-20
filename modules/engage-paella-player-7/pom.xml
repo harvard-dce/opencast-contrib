@@ -173,7 +173,8 @@
         <configuration>
           <instructions>
             <Private-Package>ui.*</Private-Package>
-            <Http-Alias>/paella7/ui</Http-Alias>
+            <Http-Alias>/engage/player</Http-Alias>
+            <!-- #DCE different path, Http-Alias>/paella7/ui</Http-Alias -->
             <Http-Classpath>/ui</Http-Classpath>
             <Http-Welcome>watch.html</Http-Welcome>
           </instructions>

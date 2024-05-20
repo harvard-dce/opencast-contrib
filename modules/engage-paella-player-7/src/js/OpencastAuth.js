@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to The Apereo Foundation under one or more contributor license
  * agreements. See the NOTICE file distributed with this work for additional
  * information regarding copyright ownership.
@@ -44,7 +44,7 @@ export default class OpencastAuth {
       const response = await fetch(getUrlFromOpencastServer(`/search/episode.json?id=${this.player.videoId}`));
       if (response.ok) {
         const episode = await response.json();
-        return episode['result'][0]?.acl;
+        return episode['search-results']?.result?.acl;
       }
       return null;
     }

@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to The Apereo Foundation under one or more contributor license
  * agreements. See the NOTICE file distributed with this work for additional
  * information regarding copyright ownership.
@@ -89,17 +89,6 @@ function getStreamType(track) {
   return result;
 }
 
-function getTags(mpe) {
-  let tags = [];
-  if (mpe.tags && mpe.tags.tag) {
-    tags = mpe.tags.tag;
-    if (!(tags instanceof Array)) {
-      tags = [tags];
-    }
-  }
-  return tags;
-}
-
 function getSourceData(track, config) {
   let data = null;
   // Get substring of type before slash
@@ -112,33 +101,26 @@ function getSourceData(track, config) {
         type: streamType.streamType,
         content: type,
         flavor: track.type,
-        tags: getTags(track)
+        tags: track.tags.tag
       };
     }
   }
   return data;
 }
 
-function ensureArray(thing) {
-  //Ensure that thing is an array, if it's not wrap it into an array.  If it's null then return an empty array.
-  return thing ?
-    (Array.isArray(thing) ?
-      thing :
-      [ thing ]) :
-    [];
-}
-
-function ensureSingle(thing) {
-  //Ensure we get a single thing, either by taking the first element in an array, returning the input, or undefined
-  return thing ?
-    (Array.isArray(thing) ?
-      thing[0] :
-      thing) :
-    undefined ;
-}
-
 function getMetadata(episode, config) {
-  const dc = episode?.dc;
+  const { duration, title, language, series, seriestitle, subjects, license, type } = episode.mediapackage;
+  const startDate = new Date(episode.dcCreated);
+  const presenters = episode?.mediapackage?.creators?.creator
+    ? (Array.isArray(episode?.mediapackage?.creators?.creator)
+      ? episode?.mediapackage?.creators?.creator
+      : [episode?.mediapackage?.creators?.creator])
+    : [];
+  const contributors = episode?.mediapackage?.contributors?.contributor
+    ? (Array.isArray(episode.mediapackage.contributors.contributor)
+      ? episode.mediapackage.contributors.contributor
+      : [episode.mediapackage.contributors.contributor])
+    : [];
 
   const tracks = episode?.mediapackage?.media?.track
     ? (Array.isArray(episode.mediapackage.media.track)
@@ -150,19 +132,21 @@ function getMetadata(episode, config) {
   const visibleTimeLine = !(isLive && config?.hideTimeLineOnLive);
 
   const result = {
-    title: ensureSingle(dc?.title),
-    subject: ensureSingle(dc?.subject),
-    description: ensureArray(dc?.description),
-    language: ensureSingle(dc?.language),
-    rights: ensureArray(dc?.rightsHolder),
-    license: ensureSingle(dc?.license),
-    series: ensureSingle(dc?.isPartOf),
-    presenters: ensureArray(dc?.creator),
-    contributors: ensureArray(dc?.contributor),
-    startDate: new Date(dc?.created),
-    duration: episode?.mediapackage?.duration / 1000, //FIXME: Parse from DC:extent (cf "PT9M57.002S")
-    location: ensureSingle(episode?.dc?.spatial),
-    UID: episode?.mediapackage?.id, //FIXME: Move this to the DC fields?
+    title,
+    subject: subjects?.subject,
+    description: episode?.dcDescription,
+    language,
+    rights: episode?.dcRightsHolder,
+    license,
+    series,
+    seriestitle,
+    presenters,
+    contributors,
+    startDate,
+    duration: duration / 1000,
+    location: episode?.dcSpatial,
+    UID: episode?.id,
+    type,
     opencast: {episode},
     visibleTimeLine
   };
@@ -212,22 +196,20 @@ function mergeSources(sources, config) {
     if (!stream) {
       // check which video canvases to use
       let canvas = [];
-      if (config.videoCanvas) {
-        for (var key of Object.keys(config.videoCanvas)) {
-          let canvasConfig = config.videoCanvas[key];
-          // check if the flavor matches
-          if (canvasConfig.flavor && matchesFlavor(flavor, canvasConfig.flavor)) {
-            canvas.push(key);
-            continue;
-          }
+      for (var key of Object.keys(config.videoCanvas)) {
+        let canvasConfig = config.videoCanvas[key];
+        // check if the flavor matches
+        if (canvasConfig.flavor && matchesFlavor(flavor, canvasConfig.flavor)) {
+          canvas.push(key);
+          continue;
+        }
 
-          // check if a tag matches
-          if (canvasConfig.tag) {
-            for (let i = 0; i < tags.length; i++) {
-              if (tags[i] === canvasConfig.tag) {
-                canvas.push(key);
-                break;
-              }
+        // check if a tag matches
+        if (canvasConfig.tag) {
+          for (let i = 0; i < tags.length; i++) {
+            if (tags[i] === canvasConfig.tag) {
+              canvas.push(key);
+              break;
             }
           }
         }
@@ -403,18 +385,22 @@ function readCaptions(potentialNewCaptions, captions) {
         let captions_closed = '';
         const captions_subtype = captions_match[1];
 
-        let tags = getTags(potentialCaption);
-        tags.forEach((tag)=>{
-          if (tag.startsWith('lang:')){
-            captions_lang = tag.substring('lang:'.length);
+        if (potentialCaption.tags && potentialCaption.tags.tag) {
+          if (!(potentialCaption.tags.tag instanceof Array)) {
+            potentialCaption.tags.tag = [potentialCaption.tags.tag];
           }
-          if (tag.startsWith('generator-type:') && tag.substring('generator-type:'.length) === 'auto') {
-            captions_generated = ' (' + translate('automatically generated') + ')';
-          }
-          if (tag.startsWith('type:') && tag.substring('type:'.length) === 'closed-caption') {
-            captions_closed = '[CC] ';
-          }
-        });
+          potentialCaption.tags.tag.forEach((tag)=>{
+            if (tag.startsWith('lang:')){
+              captions_lang = tag.substring('lang:'.length);
+            }
+            if (tag.startsWith('generator-type:') && tag.substring('generator-type:'.length) === 'auto') {
+              captions_generated = ' (' + translate('automatically generated') + ')';
+            }
+            if (tag.startsWith('type:') && tag.substring('type:'.length) === 'closed-caption') {
+              captions_closed = '[CC] ';
+            }
+          });
+        }
 
         let captions_format = potentialCaption.url.split('.').pop();
         // Backwards support for 'captions/dfxp' flavored xml files
@@ -460,9 +446,9 @@ function getCaptions(episode) {
 }
 
 export function episodeToManifest(ocResponse, config) {
-  const searchResults = ocResponse['result'];
-  if (searchResults?.length === 1) {
-    const episode = searchResults[0];
+  const searchResults = ocResponse['search-results'];
+  if (searchResults?.total === 1) {
+    const episode = searchResults.result;
     const metadata = getMetadata(episode, config);
     const streams = getStreams(episode, config);
     const captions = getCaptions(episode, config);

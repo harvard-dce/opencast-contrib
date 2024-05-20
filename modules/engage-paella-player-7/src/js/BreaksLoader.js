@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to The Apereo Foundation under one or more contributor license
  * agreements. See the NOTICE file distributed with this work for additional
  * information regarding copyright ownership.
@@ -19,6 +19,7 @@
  *
  */
 
+// #DCE TODO: make OC upstream pull for change
 import { getUrlFromOpencastServer } from './PaellaOpencast';
 
 export const loadBreaks = async (player, videoId) => {
@@ -28,11 +29,15 @@ export const loadBreaks = async (player, videoId) => {
   if (response.ok) {
     try {
       const data = await response.json();
-      const annotation = Array.isArray(data.annotations?.annotation) ?
-        data.annotations?.annotation[0] : data.annotations?.annotation;
-      JSON.parse(annotation.value).breaks.forEach(({id, e, s, text}) => {
-        breaks.push({id, s, e, text});
-      });
+      const annotation = Array.isArray(data.annotations?.annotation)
+        ? data.annotations?.annotation[0]
+        : data.annotations?.annotation;
+      // #DCE added test for annotations before accessing variable to avoid extra error logs outside the catch
+      if (annotation) {
+        JSON.parse(annotation.value).breaks.forEach(({id, e, s, text}) => {
+          breaks.push({id, s, e, text});
+        });
+      }
     }
     catch (e) {
       player.log.warn('Error loading breaks annotations');

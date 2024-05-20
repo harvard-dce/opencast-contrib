@@ -1,0 +1,325 @@
+/* Use roboto font */
+@font-face {
+    font-family: "Roboto", sans-serif;
+    src: url(Roboto-Regular.ttf);
+}
+
+.button-group .button-plugin-wrapper .button-description,
+.button-group-title,
+.menu-button-title,
+button {
+    font-family: "Roboto", sans-serif;
+}
+
+.progress-indicator-container {
+    forced-color-adjust: none;
+}
+
+/* ********************************************************************************************** */
+:root {
+    /* sizes */
+    /* --button-fixed-width: 40px; */
+    /* --button-fixed-height: 40px; */
+    /* --playback-bar-height: var(--button-fixed-height) + 10px; */
+    /* --button-icon-size: calc(var(--button-fixed-width) / 2); */
+
+    /* colors */
+    --main-fg-color: #F9FAFB;
+    --main-bg-color: #1F2937;
+    --main-bg-color-hover: #1F2937;
+
+    /* --secondary-bg-color: rgb(32,32,32); */
+    --secondary-bg-color-hover: #1F2937;
+    --highlight-bg-color: #525252;
+    --highlight-bg-color-hover: #424242;
+    --main-bg-gradient: #1F2937;
+    /* --main-border-color: rgba(125,125,125,0.4); */
+    /* --video-container-background-color: #e4e4e4; */
+    --base-video-rect-background-color: #9CA3AF;
+
+    --button-fixed-height: 48px;
+    /* video-container-message */
+    /* --video-container-message-bkg: rgba(0, 0, 0, 0.4); */
+    /* --video-container-message-color: white; */
+
+    /* video-container */
+    /* --video-container-padding: 10px; */
+
+    --volume-slider-empty-color: #424242;
+    ;
+    --volume-slider-fill-color: #AAA;
+
+    /*  #DCE colors */
+    --background-dark-color: #222;
+
+}
+
+
+.video-container {
+    background-color: var(--background-dark-color);
+    background-image: linear-gradient(to bottom, #333, #111);
+}
+
+
+/*  #DCE dark background on preview */
+.preview-container {
+    background-color: var(--background-dark-color) !important;
+}
+
+/* #DCE align menu items left */
+ul.menu-button-content li.menu-button-item button {
+    justify-content: start;
+}
+
+/* #DCE more flexible menu height */
+ul.menu-button-content li.menu-button-item button span.menu-title {
+    height: 2em;
+    line-height: 2em;
+    padding-left: .4em;
+    padding-right: .4em;
+}
+
+.menu-button-title {
+    text-align: left;
+}
+
+/* playback-bar style */
+.playback-bar .button-plugins button i svg {
+    width: 100%;
+    height: 100%;
+    fill: var(--main-fg-color);
+    color: var(--main-fg-color);
+
+}
+
+.playback-bar .button-plugin-side-area {
+    line-height: 48px;
+}
+
+.playback-bar,
+.playback-bar:hover,
+.playback-bar.inline-mode {
+    background-image: linear-gradient(rgb(50, 50, 50) 0%, rgb(50, 50, 50) 35.33%, rgb(40, 40, 40) 35.33%, rgb(40, 40, 40) 70.66%, rgb(34, 34, 34) 70.66%, rgb(34, 34, 34) 100%);
+    border-top: 1px solid rgb(89, 87, 87);
+    display: inline !important;
+}
+
+.playback-bar .button-plugins button i {
+    height: 1.6em;
+}
+
+/* buttons in playbar */
+.playback-bar .button-plugins .timer-container {
+    padding: .4em;
+    height: var(--button-fixed-height);
+}
+
+.timer-container {
+    padding: .4em !important;
+    line-height: 1.6em !important;
+}
+
+.progress-indicator-timer {
+    font-size: .8em !important;
+    font-weight: lighter !important;
+}
+
+.playback-bar .button-plugins .button-plugin-container button {
+    border-radius: 7px;
+}
+
+.playback-bar .button-plugins .button-plugin-container div.non-interactive {
+    margin-top: -2px;
+}
+
+.playback-bar .button-plugins.left-side {
+    margin-left: 5px;
+}
+
+.playback-bar .button-plugins.right-side {
+    margin-right: 5px;
+}
+
+
+/* progress indicator style */
+.progress-indicator.top-mode {
+    height: 12px;
+    width: 100%;
+    margin-left: 0;
+}
+
+.progress-indicator-container .progress-indicator-content {
+    opacity: 1;
+}
+
+.progress-indicator .progress-indicator-content,
+.progress-indicator .progress-indicator-remaining {
+    border-radius: .8em;
+    height: .7em;
+}
+
+/* #DCE OPC-931 The progressIndicator showHandler needs be true to workaround the Chrome render race condition issue on timeupdate
+ * in some DCE videos.
+ * Enabling showHandler causes its style attribute toupdate on timeupdate, which causes Chrome to properly render
+ * the innerHTML changes for: icon in the play-pause button, the text in the timeline time area, and volume mute/umute icon.
+ * Setting opacity to 0 here on the handler, to avoid showing the handler artifact on the timeline
+ * */
+.progress-indicator .progress-indicator-handler {
+    background-color: white;
+    width: 8px;
+    height: 8px;
+    opacity: 0;
+}
+
+.progress-indicator .progress-indicator-content {
+    background-image: linear-gradient(to bottom, #ffffff, #807e7e);
+    border: 1px solid rgb(89, 87, 87);
+}
+
+.progress-indicator .progress-indicator-remaining {
+    border-radius: 5px;
+    background-image: linear-gradient(to bottom, #1f1f1f, #313131);
+    border: 1px solid #9b9b9b;
+}
+
+.progress-indicator .progress-indicator-timer {
+    color: #555;
+}
+
+
+
+.player-container button:focus-visible {
+    outline-style: none;
+    box-shadow: inset 0px 0px 8px 0px #6495ed;
+}
+
+.popup-content,
+.timeline-popup-content {
+    background-color: #333;
+    border: 1px solid #555;
+    border-radius: 0;
+}
+
+ul.menu-button-content li.menu-button-item button:hover {
+    background-color: #555;
+}
+
+ul.menu-button-content li.menu-button-item button.selected {
+    background-color: #333;
+    border: 1px solid #555;
+}
+
+.frame-control-plugin-container button img {
+    border: 1px solid #555;
+}
+
+/* button area on videos */
+.video-canvas .button-area button {
+    background-color: var(--highlight-bg-color-hover);
+    width: 32px;
+    height: 32px;
+    box-sizing: border-box;
+    padding: 4px;
+}
+
+/* ** */
+.button-group .button-plugin-container button[name="es.upv.paella.qualitySelector"] {
+    padding: 0;
+}
+
+
+/* This should be in paella-core */
+:root {
+    --main-outline-color: #f200f2;
+}
+
+.playback-bar {
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.frame-control-plugin-container .image-list img {
+    width: 160px;
+}
+
+/* outline styles for buttons */
+.player-container button,
+.video-container .video-canvas .button-area button,
+.button-group .button-plugin-container button {
+    outline-style: none;
+}
+
+.player-container button:focus-visible,
+.video-container .video-canvas .button-area button:focus-visible,
+.button-group .button-plugin-container button:focus-visible {
+    outline-color: var(--main-outline-color);
+    outline-style: solid;
+    opacity: 1;
+}
+
+.video-canvas .button-area {
+    padding: 5px;
+    height: calc(32px + 5px);
+}
+
+/* playback bar icons size change using queries */
+.playback-bar {
+    container-name: playback-bar;
+    container-type: inline-size;
+}
+
+@container playback-bar (max-width: 700px) {
+    .playback-bar .button-plugins .button-plugin-container button {
+        height: calc(var(--button-fixed-height) * 0.7);
+    }
+    .playback-bar .button-plugins .button-plugin-container button.fixed-width {
+        width: calc(var(--button-fixed-width) * 0.7);
+    }
+    .playback-bar .button-plugins {
+        height: calc((var(--button-fixed-height) * 0.7) - 1px);
+        padding: 2px;
+    }
+    .playback-bar .button-plugin-side-area {
+        line-height: calc(var(--button-fixed-height) * 0.7);
+    }
+
+    .volume-slider {
+        width: 60px;
+    }
+}
+
+/* From Miguel@UPV, This temporary fix for the keyboardshortcutshelp plugin
+ * This will be in the next version of paella-basic-plugins lib
+ * */
+
+.keyboardshortcutshelp-plugin .row .key {
+  text-align: right;
+}
+.keyboardshortcutshelp-plugin .row {
+  gap: 5px;
+}
+
+.description-plugin, .keyboardshortcutshelp-plugin {
+  min-width: unset;
+}
+
+/*  #DCE OPC-934 Add room for a highlighted border for tab hightligh */
+/*  Upstream request ticket to highlight slide in current time-range: https://github.com/polimediaupv/paella-core/issues/345 */
+.frame-control-plugin-container .image-list button {
+  margin: 0.2em !important;
+}
+
+/* #DCE OPC-864 To give preview play button's tab focus a round shape to match button
+ * unset the outline color to remove the pink tab focus halo, this is the only item on screen
+ */
+.preview-container button {
+  border-radius: 50%;
+  outline-color: unset !important;
+  --main-outline-color: unset !important;
+}
+
+/* #DCE raise slides above the timeline */
+.timeline-popup-content {
+  bottom: 64px;   /* default is 54px */
+}
+

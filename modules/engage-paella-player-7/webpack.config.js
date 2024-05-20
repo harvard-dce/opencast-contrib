@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to The Apereo Foundation under one or more contributor license
  * agreements. See the NOTICE file distributed with this work for additional
  * information regarding copyright ownership.
@@ -23,14 +23,9 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 const webpack = require('webpack');
 
 
-
 module.exports = function (env) {
   const ocServer = env.server || 'http://localhost:8080';
-  const proxyOpts = {
-    target: ocServer,
-    secure: false,
-    changeOrigin: true
-  };
+  console.log('Using OpenCast server: ' + ocServer);
 
   return {
     entry: './src/index.js',
@@ -57,17 +52,24 @@ module.exports = function (env) {
           publicPath: '/test_mock_static'
         }
       ],
-      proxy: [{
-        '/search/**': proxyOpts,
-        '/info/**': proxyOpts,
-        '/series/**': proxyOpts,
-        '/annotation/**': proxyOpts,
-        '/engage/**': proxyOpts,
-        '/play/**': proxyOpts,
-        '/usertracking/**': proxyOpts,
-        '/editor/**': proxyOpts,
-        '/editor-ui/**': proxyOpts
-      }]
+      proxy: [
+        {
+          context: [
+            '/search',
+            '/info',
+            '/series',
+            '/annotation',
+            '/engage',
+            '/player',
+            '/usertracking',
+            '/editor',
+            '/editor-ui'
+          ],
+          target: ocServer,
+          secure: false,
+          changeOrigin: true
+        }
+      ]
     },
 
     module: {
@@ -78,7 +80,13 @@ module.exports = function (env) {
           use: {
             loader: 'babel-loader',
             options: {
-              presets: ['@babel/preset-env']
+              presets: ['@babel/preset-env'],
+              plugins: [
+                ['@babel/plugin-transform-react-jsx', {
+                  'pragma': 'h',
+                  'pragmaFrag': 'Fragment',
+                }]
+              ]
             }
           }
         },
@@ -97,7 +105,11 @@ module.exports = function (env) {
         },
         {
           test: /\.css$/i,
-          use: ['style-loader', 'css-loader']
+          // include: SHEPHERD_CSS_PATH,
+          use: [
+            {loader: 'style-loader'},
+            {loader: 'css-loader'}
+          ],
         },
         {
           test: /\.xml$/,
@@ -134,3 +146,4 @@ module.exports = function (env) {
     }
   }
 };
+

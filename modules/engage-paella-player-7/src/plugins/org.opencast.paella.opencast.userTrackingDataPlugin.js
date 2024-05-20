@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to The Apereo Foundation under one or more contributor license
  * agreements. See the NOTICE file distributed with this work for additional
  * information regarding copyright ownership.
@@ -18,6 +18,8 @@
  * the License.
  *
  */
+// #DCE Override OC upstream plugin for currentTime protection and
+// put PUT params in body instead of URL
 import { DataPlugin, Events } from 'paella-core';
 import { getUrlFromOpencastServer } from '../js/PaellaOpencast';
 
@@ -39,9 +41,15 @@ export default class OpencastUserTrackingDataPlugin extends DataPlugin {
   }
 
   async write(context, { id }, data) {
-    const currentTime = await this.player.videoContainer.currentTime();
-    const playing = !(await this.player.videoContainer.paused());
-    this.player.log.debug(`Logging event for video id ${ id } at time: ${ currentTime }`);
+    let currentTime = 0;
+    let playing = false;
+    // #DCE, If player is ready, it's safe to request it's current time
+    // OC upstream pull https://github.com/opencast/opencast/pull/5768
+    if (this.player.ready) {
+      currentTime = await this.player.videoContainer.currentTime();
+      playing = !(await this.player.videoContainer.paused());
+    }
+    this.player.log.debug(`Logging event "${data?.event}" for video id ${ id } at time: ${ currentTime }`);
 
     const opencastLog = {
       id,
@@ -72,12 +80,18 @@ export default class OpencastUserTrackingDataPlugin extends DataPlugin {
       opencastLog.type += '-' + data.plugin;
       break;
     default:
-      opencastLog.type += params;
+      opencastLog.type += params ? params : '';
     }
 
     const params = (new URLSearchParams(opencastLog)).toString();
-    const requestUrl = `/usertracking/?_method=PUT&${ params }`;
-    const result = await fetch(getUrlFromOpencastServer(requestUrl));
+    // #DCE PUT params in body instead of URL
+    const result = await fetch(getUrlFromOpencastServer('/usertracking'), {
+      method: 'PUT',
+      headers: {
+        'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8'
+      },
+      body: params,
+    });
     if (!result.ok) {
       this.player.log.error('Error in user data log');
     }
