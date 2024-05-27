@@ -279,11 +279,10 @@
             "tabIndexStart": 40
         },
         "org.opencast.paella.multiVideoDynamicLayout": {
-            "enabled": true,
+            "enabled": false,
             "validContent": [
                 {
                     "id": "multi-video",
-                    "content": [],
                     "icon": "present-mode-4.svg",
                     "title": "Auto"
                 }
@@ -347,24 +346,15 @@
             "enabled": true,
             "order": 4
         },
-
-        "/* left toolbar buttons*/": "*********************************************************",
-        "/* #DCE override this playPauseButton Ref: https://github.com/polimediaupv/paella-core/pull/364 */": "---------",
         "es.upv.paella.playPauseButton": {
-            "enabled": false,
+            "enabled": true,
             "order": 0,
             "tabIndex": 1,
-            "description": "Play and pause button"
+            "description": "Play and pause button",
+            "ariaKeyshortcuts": "k",
+            "Dont-set-aaaariaLabelPlay": "Play",
+            "Dont-set-aaaariaLabelPause": "Pause"
         },
-        "es.upv.paella.override.playPauseButton" : {
-          "/* #DCE override playPauseButton */": "---------",
-          "enabled": true,
-          "order": 0,
-          "tabIndex": 1,
-          "ariaKeyshortcuts": "k",
-          "ariaLabelPlay": "Play",
-          "ariaLabelPause": "Pause"
-      },
         "es.upv.paella.customTimeProgressIndicator": {
             "/* #DCE disable */": "---------",
             "enabled": false,
@@ -384,7 +374,7 @@
             "enabled": true,
             "side": "left",
             "order": 3,
-            "time": 10,
+            "time": 30,
             "suffix": false,
             "tabIndex": 3
         },
@@ -452,7 +442,7 @@
 
         "/* #DCE OPC-892 & OPC-910 fullscreenButton */": "---------",
         "es.upv.paella.fullscreenButton": {
-            "enabled": true,
+            "enabled": false,
             "side": "right",
             "order": 104,
             "tabIndex": 11,
@@ -460,7 +450,7 @@
         },
         "es.upv.paella.override.fullscreenButton": {
             "/* #DCE OPC-892 & OPC-910 fullscreenButton override */": "---------",
-            "enabled": false,
+            "enabled": true,
             "side": "right",
             "order": 104,
             "tabIndex": 11,
@@ -518,20 +508,7 @@
             ],
             "enableOnWritePermission": true
         },
-        "/* #DCE OPC-905 keyboard short cuts help dynamic override */": "---------",
         "es.upv.paella.keyboardShortcutsHelp": {
-            "enabled": false,
-            "order": 80,
-            "description": "Keyboard shortcuts",
-            "parentContainer": "settingsGroup",
-            "closeParentPopUp": true,
-            "tabIndex": 7,
-            "popUpType": "no-modal"
-        },
-        "es.upv.paella.override.keyboardShortcutsHelp": {
-            "/* #DCE OPC-905 override */":"-----------------------",
-            "/* #DCE OPC-905 override warning1 */":"This plugin contains hardcoded references to other plugin class names",
-            "/* #DCE OPC-905 override warning2 */":"Confirm their continued accuracy after changing other plugins in this config",
             "enabled": true,
             "side": "right",
             "order": 6,
@@ -548,7 +525,6 @@
             "order": 90,
             "description": "Opencast player version"
         },
-
 
         "/* slides toolbar */": "*********************************************************",
         "es.upv.paella.nextSlideNavigatorButton": {

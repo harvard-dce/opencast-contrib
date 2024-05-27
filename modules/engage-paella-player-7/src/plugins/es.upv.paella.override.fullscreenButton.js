@@ -18,29 +18,14 @@
  * the License.
  *
  */
-import { Events, bindEvent, ButtonPlugin, utils } from 'paella-core';
+import { utils } from 'paella-core';
+import { FullscreenButtonPlugin } from 'paella-basic-plugins';
 
-import fullscreenIcon from '../icons/fullscreen-icon.svg';
-import DceUtils from '../js/DceUtils';
 
 /*
- * #DCE Override fullscreenButton plugin for checking if window is
- * allowed to go fullscreen prior to requesting to go fullscreen
- * Remove this override when UPV merges (or rewrites) pull linked below.
+ * #DCE Extend fullscreenButtonplugin for IC param to turn off fullscreen
  */
-export default class PauseButtonPlugin extends ButtonPlugin {
-
-  get name() {
-    return super.name || 'es.upv.paella.override.fullscreenButton';
-  }
-
-  getAriaLabel() {
-    return 'Toggle fullscreen';
-  }
-
-  getDescription() {
-    return this.getAriaLabel();
-  }
+export default class FullScreenPluginOverride extends FullscreenButtonPlugin {
 
   async isEnabled() {
     const enabled = await super.isEnabled();
@@ -49,44 +34,6 @@ export default class PauseButtonPlugin extends ButtonPlugin {
     if (fullscreenArg === 'off') {
       return false;
     }
-    // #DCE OPC-892 related to disabling full screen when not supported
-    // This is a patch for checking if full screen button is enabled
-    // when embedded in an iFrame.
-    // Upstream pull https://github.com/polimediaupv/paella-core/pull/320
-    // #DCE OPC-910 disable fullscreen for all IOS
-    const isIOS = DceUtils.testIfIOS();
-    const isFullScreenEnabled = (
-      window.document.fullscreenEnabled ||
-      window.document.webkitFullscreenEnabled
-    );
-    return (
-      enabled
-      && isFullScreenEnabled
-      && this.player.isFullScreenSupported()
-      && !isIOS
-    );
-  }
-
-  async load() {
-    const fsIcon = this.player.getCustomPluginIcon(this.name, 'fullscreenIcon') || fullscreenIcon;
-    const wIcon = this.player.getCustomPluginIcon(this.name, 'windowedIcon') || fullscreenIcon;
-    this.icon = fsIcon;
-    bindEvent(this.player, Events.FULLSCREEN_CHANGED, (data) => {
-      if (data.status) {
-        this.icon = wIcon;
-      }
-      else {
-        this.icon = fsIcon;
-      }
-    });
-  }
-
-  async action() {
-    if (this.player.isFullscreen) {
-      await this.player.exitFullscreen();
-    }
-    else {
-      await this.player.enterFullscreen();
-    }
+    return enabled;
   }
 }

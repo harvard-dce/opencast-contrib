@@ -83,8 +83,8 @@ module.exports = function (env) {
               presets: ['@babel/preset-env'],
               plugins: [
                 ['@babel/plugin-transform-react-jsx', {
-                  'pragma': 'h',
-                  'pragmaFrag': 'Fragment',
+                  'runtime': 'automatic',
+                  'importSource': 'preact',
                 }]
               ]
             }

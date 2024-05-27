@@ -227,7 +227,10 @@ export default class OnboardingPlugin extends EventLogPlugin {
 
     const tour = await this.buildTour();
     if (hideUI !== true) {
-      setTimeout(() => { this.player.pause(); }, 100);
+      setTimeout(() => {
+        this.player.pause();
+        this.player.pauseCaptureShortcuts();
+      }, 100);
       tour.start();
     }
   }
@@ -260,6 +263,12 @@ export default class OnboardingPlugin extends EventLogPlugin {
     await this.generateTourWelcomeSteps(tour);
     await this.generateTourSteps(tour);
     await this.generateTourGoodbyeSteps(tour);
+
+    // Completion task
+    ['complete', 'cancel'].forEach(event => tour.on(event, () => {
+      this.player.resumeCaptureShortcuts();
+      this.player.play();
+    }));
 
     return tour;
   }
