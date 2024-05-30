@@ -346,14 +346,15 @@
             "enabled": true,
             "order": 4
         },
+
         "es.upv.paella.playPauseButton": {
             "enabled": true,
             "order": 0,
             "tabIndex": 1,
             "description": "Play and pause button",
             "ariaKeyshortcuts": "k",
-            "Dont-set-aaaariaLabelPlay": "Play",
-            "Dont-set-aaaariaLabelPause": "Pause"
+            "Dont-set-ariaLabelPlay": "Play",
+            "Dont-set-ariaLabelPause": "Pause"
         },
         "es.upv.paella.customTimeProgressIndicator": {
             "/* #DCE disable */": "---------",

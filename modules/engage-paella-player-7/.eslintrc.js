@@ -4,17 +4,9 @@ module.exports = {
     "parserOptions": {
         "sourceType": "module",
         "ecmaVersion": 2017,
-        "ecmaFeatures": {
-          "modules": true,
-          "impliedStrict": true,
-          "jsx": true
-        },
         "requireConfigFile": false,
-        "babelOptions": {
-          "plugins": [
-            '@babel/plugin-syntax-class-properties',
-            '@babel/plugin-syntax-jsx'
-          ]
+	"babelOptions": {
+       	   "presets": ["@babel/preset-react"]
         },
     },
     "globals": {
