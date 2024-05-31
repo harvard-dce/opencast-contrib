@@ -488,7 +488,7 @@
             "description": "Transcriptions"
         },
         "org.opencast.paella.downloadsPlugin": {
-            "enabled": true,
+            "enabled": false,
             "parentContainer": "settingsGroup",
             "order": 50,
             "tabIndex": 10,
@@ -507,7 +507,7 @@
                 "CC-BY-NC-ND",
                 "CC0"
             ],
-            "enableOnWritePermission": true
+            "enableOnWritePermission": false
         },
         "es.upv.paella.keyboardShortcutsHelp": {
             "enabled": true,

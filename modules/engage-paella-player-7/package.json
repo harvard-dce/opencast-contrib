@@ -40,7 +40,6 @@
     "xml-loader": "^1.2.1"
   },
   "dependencies": {
-    "@babel/preset-react": "^7.24.6",
     "@preact/signals": "^1.2.3",
     "paella-basic-plugins": "^1.44.7",
     "paella-core": "^1.49.0",

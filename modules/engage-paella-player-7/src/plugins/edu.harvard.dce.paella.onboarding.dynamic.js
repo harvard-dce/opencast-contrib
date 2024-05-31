@@ -230,7 +230,7 @@ export default class OnboardingPlugin extends EventLogPlugin {
       setTimeout(() => {
         this.player.pause();
         this.player.pauseCaptureShortcuts();
-      }, 100);
+      }, 200);
       tour.start();
     }
   }
@@ -263,6 +263,14 @@ export default class OnboardingPlugin extends EventLogPlugin {
     await this.generateTourWelcomeSteps(tour);
     await this.generateTourSteps(tour);
     await this.generateTourGoodbyeSteps(tour);
+
+    // Extra pause for Safari load
+    ['show'].forEach(event => tour.on(event, () => {
+      setTimeout(() => {
+        this.player.pause();
+        this.player.pauseCaptureShortcuts();
+      }, 500);
+    }));
 
     // Completion task
     ['complete', 'cancel'].forEach(event => tour.on(event, () => {
