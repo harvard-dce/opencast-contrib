@@ -6,13 +6,17 @@
     "defaultVideoPreviewPortrait": "/ui/config/paella7/default_preview_portrait.jpg",
 
     "logLevel": "DEBUG",
+    "ui": {
+        "hideUITimer": 2500,
+        "hideOnMouseLeave": false
+    },
 
     "accessibility": {
         "clickWithSpacebar": false
     },
 
     "progressIndicator": {
-        "inlineMode": true,
+        "inlineMode": false,
         "showTotal": true,
         "parentContainer": "buttonArea",
         "side": "left",
@@ -205,7 +209,7 @@
                       ],
                       "icon": "present-mode-3.svg",
                       "title": "Presentation and other"
-                    }    
+                    }
             ],
             "tabIndexStart": 40
         },
@@ -291,8 +295,30 @@
         },
 
         "/* video formats plugins */": "*********************************************************",
-        "es.upv.paella.hlsVideoFormat": {
+        "/* #DCE HLS override to support iPadOS16: force all iOS to run native HLSvideo */": "***",
+        "es.upv.paella.override.hlsVideoFormat": {
             "enabled": true,
+            "order": 0,
+            "/* #DCE OPC-913 leave as false, Android is sensitive to going HLS native and cannot run DCE m3u8 files */": "*****",
+            "forceNative": false,
+            "hlsConfig": {
+                "maxBufferLength": 40,
+                "debug": true,
+                "backBufferLength": 90,
+                "lowLatencyMode": true,
+                "startFragPrefetch": true
+            },
+            "crossOrigin": false,
+            "corsConfig": {
+                "withCredentials": false,
+                "requestHeaders": {
+                    "Access-Control-Allow-Credentials": true
+                }
+            }
+        },
+
+        "es.upv.paella.hlsVideoFormat": {
+            "enabled": false,
             "order": 0,
             "/* #DCE OPC-913 leave as false, Android is sensitive to going HLS native and cannot run DCE m3u8 files */": "*****",
             "forceNative": false,
@@ -556,7 +582,7 @@
         },
 
         "org.opencast.paella.editorPlugin": {
-            "enabled": true,
+            "enabled": false,
             "side": "right",
             "parentContainer": "videoContainer",
             "order": 20,

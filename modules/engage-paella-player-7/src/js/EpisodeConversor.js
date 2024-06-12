@@ -370,6 +370,9 @@ function processAttachments(episode, manifest, config) {
   // Define manifest metadata even if a player preview image doesn't exist
   manifest.metadata = manifest.metadata || {};
   manifest.metadata.preview = playerPreviewImage;
+  // #DCE OPC-997 paella-core has a new previewPortrait for thin/tall windows
+  // Use same image for both landscape and portrait
+  manifest.metadata.previewPortrait = playerPreviewImage;
 }
 
 function readCaptions(potentialNewCaptions, captions) {

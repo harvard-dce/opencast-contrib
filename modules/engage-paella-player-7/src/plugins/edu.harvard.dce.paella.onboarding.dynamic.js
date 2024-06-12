@@ -41,7 +41,7 @@ export default class OnboardingPlugin extends EventLogPlugin {
     {
       plugin: 'es.upv.paella.volumeButtonPlugin',
       title: 'DCE Player: Volume Control',
-      text: 'Adjust video volume. <p/>Click the tool to make the audio louder, more quite, or mute.',
+      text: 'Adjust video volume. Click this button to make the audio louder, more quiet, or mute.',
       attachTo: {
         element: 'button[name="es.upv.paella.volumeButtonPlugin"]',
         on: 'top'
@@ -50,7 +50,7 @@ export default class OnboardingPlugin extends EventLogPlugin {
     {
       plugin: 'es.upv.paella.playPauseButton',
       title: 'DCE Player: Play and Pause Toggle',
-      text: 'You can play and pause the video. <p/>Click the tool to alternate playing and pausing the video.',
+      text: 'This button allows you to alternate playing and pausing the video.',
       attachTo: {
         element: 'button[name="es.upv.paella.playPauseButton"]',
         on: 'top'
@@ -59,7 +59,7 @@ export default class OnboardingPlugin extends EventLogPlugin {
     {
       plugin: 'es.upv.paella.override.playPauseButton',
       title: 'DCE Player: Play and Pause Toggle',
-      text: 'You can play and pause the video. <p/>Click to alternate playing and pausing the video.',
+      text: 'You can play and pause the video. Click to alternate playing and pausing the video.',
       attachTo: {
         element: 'button[name="es.upv.paella.override.playPauseButton"]',
         on: 'top'
@@ -77,7 +77,7 @@ export default class OnboardingPlugin extends EventLogPlugin {
     {
       plugin: 'es.upv.paella.backwardButtonPlugin',
       title: 'DCE Player: Video Navigation',
-      text: 'We also offer skip controls to help you navigate forward or backwards by set amounts. <p/>For instance, to skip back 10 seconds to hear something again that you may have missed.',
+      text: 'This skip controls help you navigate forward or backwards by set amounts. Click this button to skip back 10 seconds to hear something again that you may have missed.',
       attachTo: {
         element: 'button[name="es.upv.paella.backwardButtonPlugin"]',
         on: 'top'
@@ -86,7 +86,7 @@ export default class OnboardingPlugin extends EventLogPlugin {
     {
       plugin: 'es.upv.paella.frameControlButtonPlugin',
       title: 'DCE Player: Video Navigation',
-      text: 'You can use the slide tool to skip to a specific part of the video based on what content was being presented. <p/>Click the tool and then click a slide to jump to that section of the video.',
+      text: 'You can use the slide tool to skip to a specific part of the video based on what content was being presented. Click the tool and then click a slide to jump to that section of the video.',
       attachTo: {
         element: 'button[name="es.upv.paella.frameControlButtonPlugin"]',
         on: 'top'
@@ -96,7 +96,7 @@ export default class OnboardingPlugin extends EventLogPlugin {
     {
       plugin: 'es.upv.paella.playbackRateButton',
       title: 'DCE Player: Speeding Up / Slowing Down Playback',
-      text: 'You can increase/decrease the playback speed via the playback speed control. <p/>Click it and you\'ll get a set of choices. Select "1x" to set playback speed back to normal.',
+      text: 'You can increase/decrease the playback speed via the playback speed control. Click it and you\'ll get a set of choices. Select "1x" to set playback speed back to normal.',
       attachTo: {
         element: 'button[name="es.upv.paella.playbackRateButton"]',
         on: 'top'
@@ -105,8 +105,8 @@ export default class OnboardingPlugin extends EventLogPlugin {
     // Tour: The default UPV full screen plugin button
     {
       plugin: 'es.upv.paella.fullscreenButton',
-      title: 'DCE Player: Full Screen Mode',
-      text: 'Use the "full screen" tool to maximize the size of the videos in your web browser. Press the escape key to exit, or simply click the control again.',
+      title: 'DCE Player: Full Screen',
+      text: 'Use the Full Screen tool to maximize the size of the videos in your web browser. Press the escape key to exit, or simply click the control again.',
       attachTo: {
         element: 'button[name="es.upv.paella.fullscreenButton"]',
         on: 'top'
@@ -115,8 +115,8 @@ export default class OnboardingPlugin extends EventLogPlugin {
     // Tour: "Temporary" full screen override plugin button
     {
       plugin: 'es.upv.paella.override.fullscreenButton',
-      title: 'DCE Player: Full Screen Mode',
-      text: 'Use the "full screen" tool to maximize the size of the videos in your web browser. Press the escape key to exit, or simply click the control again.',
+      title: 'DCE Player: Full Screen',
+      text: 'Use the Full Screen button to maximize the size of the videos in your web browser. Press the escape key to exit, or simply click the control again.',
       attachTo: {
         element: 'button[name="es.upv.paella.override.fullscreenButton"]',
         on: 'top'
@@ -126,7 +126,7 @@ export default class OnboardingPlugin extends EventLogPlugin {
     {
       plugin: 'edu.harvard.dce.paella.infoMenu',
       title: 'DCE Player: Class Handouts',
-      text: 'A "Class Handout" link appears in the help menu if the publication contains an attached handout. <p/>Click the "Class Handout" link to access the handout. PDF files may open in another window instead of downloading.',
+      text: 'A "Class Handout" link appears in the help menu if the video contains an attached handout. Click the Class Handout button to access the handout. PDF files may open in another window instead of downloading.',
       attachTo: {
         element: 'button[name="edu.harvard.dce.paella.infoMenu"]',
         on: 'top'
@@ -136,9 +136,9 @@ export default class OnboardingPlugin extends EventLogPlugin {
     {
       plugin: 'edu.harvard.dce.paella.captionTogglePlugin',
       title: 'DCE Player: Captions',
-      text: 'A closed caption icon (CC) appears on the control bar \
-          if the publication contains closed captions. \
-          <p/>Click closed caption icon to enable and disable closed caption.',
+      text: 'A Closed Captions icon (CC) appears on the control bar \
+          if the video contains closed captions. \
+          Click Closed Captions button to show and hide Closed Captions.',
       attachTo: {
         element: 'button[name="edu.harvard.dce.paella.captionTogglePlugin"]',
         on: 'top'
@@ -148,7 +148,7 @@ export default class OnboardingPlugin extends EventLogPlugin {
     {
       plugin: 'es.upv.paella.layoutSelector',
       title: 'DCE Player: Changing the Layout of the Videos',
-      text: 'You can switch between several layouts designed to emphasize the camera or the presentation, depending on the current focus of what\'s happening in the video. <p/>For instance, if the instructor is working on a problem you might want to see the projected chalkboard in as much detail as possible. Switching layouts lets you do this.',
+      text: 'You can switch among several layouts designed to emphasize the presenter or the presentation, depending on the current focus of what\'s happening in the video. For instance, if the instructor is working on a problem, you might want to see the projected chalkboard in as much detail as possible. Switching layouts lets you do this.',
       attachTo: {
         element: 'button[name="es.upv.paella.layoutSelector"]',
         on: 'top'
@@ -161,7 +161,7 @@ export default class OnboardingPlugin extends EventLogPlugin {
       text: 'The Opencast Social button appears \
           when the video allows students to share comments \
           in the context of the video. \
-          <p/>Click the OC Social icon to view and create comments.',
+          Click the OC Social icon to view and create comments.',
       attachTo: {
         element: 'button[id="edu.harvard.dce.paella.socialPlugin"]',
         on: 'top'
@@ -171,14 +171,14 @@ export default class OnboardingPlugin extends EventLogPlugin {
     {
       plugin: 'org.opencast.paella.toolsGroupPlugin',
       title: 'DCE Player: Settings',
-      text: 'The settings group contains a list of options \
+      text: 'The Settings group contains a list of options \
             <ul> \
-              <li>playback speed</li> \
-              <li>video resolution</li> \
-              <li>help links</li> \
-              <li>information about the player</li> \
+              <li>Playback Speed</li> \
+              <li>Video Resolution</li> \
+              <li>Help Links</li> \
+              <li>Information About the Player</li> \
             </ul> \
-            <p/>Click the settings link to access these options.',
+            Click the Settings link to access these options.',
       attachTo: {
         element: 'button[name="org.opencast.paella.toolsGroupPlugin"]',
         on: 'top'
@@ -188,22 +188,12 @@ export default class OnboardingPlugin extends EventLogPlugin {
       plugin: 'es.upv.paella.keyboardShortcutsHelp',
       title: 'DCE Player: Keyboard Shortcuts',
       text: 'Some basic functions of the player can be used with \
-          the keyboard. <p/>Click keyboard icon to view the keys.',
+          the keyboard. Click the Keyboard Shortcuts button to view shortcut keys.',
       attachTo: {
         element: 'button[name="es.upv.paella.keyboardShortcutsHelp"]',
         on: 'top'
       }
     },
-    {
-      plugin: 'es.upv.paella.override.keyboardShortcutsHelp',
-      title: 'DCE Player: Keyboard Shortcuts',
-      text: 'Some basic functions of the player can be used with \
-          the keyboard. <p/>Click keyboard icon to view the keys.',
-      attachTo: {
-        element: 'button[name="es.upv.paella.override.keyboardShortcutsHelp"]',
-        on: 'top'
-      }
-    }
   ];
 
   isEnabled () {
@@ -216,21 +206,23 @@ export default class OnboardingPlugin extends EventLogPlugin {
 
   get events() {
     return [
-      Events.PLAYER_LOADED
+      Events.PLAY
     ];
   }
 
   // eslint-disable-next-line no-unused-vars
   async onEvent(evt, params) {
+    // Show on first play, not player load, to avoid the pause before play race condition
+    // Reference https://developer.chrome.com/blog/play-request-was-interrupted
+    if (this.hasOnboarded) return;
+    this.hasOnboarded = true;
     const hideUI = await this.player.preferences.get('onboarding_hideUI', { global: true });
     this.player.log.info(`onboardinghelp hideUI=${hideUI === true}`);
 
     const tour = await this.buildTour();
     if (hideUI !== true) {
-      setTimeout(() => {
-        this.player.pause();
-        this.player.pauseCaptureShortcuts();
-      }, 200);
+      this.player.pause();
+      this.player.pauseCaptureShortcuts();
       tour.start();
     }
   }
@@ -264,15 +256,14 @@ export default class OnboardingPlugin extends EventLogPlugin {
     await this.generateTourSteps(tour);
     await this.generateTourGoodbyeSteps(tour);
 
-    // Extra pause for Safari load
-    ['show'].forEach(event => tour.on(event, () => {
-      setTimeout(() => {
-        this.player.pause();
-        this.player.pauseCaptureShortcuts();
-      }, 500);
+
+    // Start task, ensure player is paused
+    ['start'].forEach(event => tour.on(event, () => {
+      this.player.pause();
+      this.player.pauseCaptureShortcuts();
     }));
 
-    // Completion task
+    // Completion task, resume player
     ['complete', 'cancel'].forEach(event => tour.on(event, () => {
       this.player.resumeCaptureShortcuts();
       this.player.play();
@@ -286,7 +277,7 @@ export default class OnboardingPlugin extends EventLogPlugin {
     tour.addSteps([
       {
         title: 'Welcome to the DCE Video Player Tutorial',
-        text: 'This player displays one or more video(s) - along with variable control options on the lower menu bar. <p/>You can begin viewing the lecture by pressing the play button on top of the video window or in the control bar.',
+        text: 'This tutorial will step you through the primary player controls. Click [Next] to begin.',
         buttons: [
           {
             text: 'Don\'t show again',
@@ -305,9 +296,9 @@ export default class OnboardingPlugin extends EventLogPlugin {
   }
 
   async generateTourSteps(tour) {
-    // Tour: Video navigation
+    // Tour: Video Navigation
     tour.addStep({
-      title: 'DCE Player: Video navigation',
+      title: 'DCE Player: Video Navigation',
       text: 'This is the timeline. You can navigate to any time in the video by clicking the timeline.',
       attachTo: {
         element: '.playback-bar .progress-indicator',
@@ -347,8 +338,8 @@ export default class OnboardingPlugin extends EventLogPlugin {
     // Tour: Goodbye
     tour.addSteps([
       {
-        title: 'Welcome to DCE Video Player tutorial',
-        text: 'Enjoy the Video',
+        title: 'Welcome to DCE Video Player Tutorial',
+        text: 'Enjoy the video!',
         buttons: [
           {
             text: 'Show again',
