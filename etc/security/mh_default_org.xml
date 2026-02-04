@@ -490,7 +490,7 @@
 
         <!-- 2-legged OAuth is used by trusted 3rd party applications, including LTI. -->
         <!-- Uncomment the line below to support LTI or other OAuth clients.          -->
-        <!-- ref bean="lti11AuthenticationFilter" /> -->
+        <ref bean="lti11AuthenticationFilter" />
       </list>
     </property>
   </bean>
@@ -813,9 +813,11 @@
     <!-- Set either `jwksUrl` or `secret` to enable this login handler -->
     <!-- <property name="jwksUrl" value="https://replace-me.invalid/.well-known/jwks.json" /> -->
     <!-- <property name="secret" value="***" /> -->
+    <property name="secret" value="opencast_jwt_secret_1234567890_1234567890" />
     <property name="expectedAlgorithms">
       <!-- The signing algorithms expected for the JWT signature -->
       <list value-type="java.lang.String">
+        <value>HS256</value>
         <value>ES256</value>
         <value>ES256K</value>
         <value>ES384</value>
