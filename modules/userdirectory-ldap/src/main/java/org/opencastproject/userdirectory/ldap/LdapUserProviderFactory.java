@@ -158,6 +158,9 @@ public class LdapUserProviderFactory implements ManagedServiceFactory {
   /** The key to setup an LDAP connection ID as an OSGI service property */
   private static final String INSTANCE_ID_SERVICE_PROPERTY_KEY = "instanceId";
 
+  /** The key to setup the organization ID as an OSGI service property */
+  private static final String ORGANIZATION_ID_SERVICE_PROPERTY_KEY = "orgId";
+
   /** A map of pid to ldap user provider instance */
   private Map<String, ServiceRegistration> providerRegistrations = new ConcurrentHashMap<>();
 
@@ -381,6 +384,7 @@ public class LdapUserProviderFactory implements ManagedServiceFactory {
     // Dictionary to include a property to identify this LDAP instance in the security.xml file
     Hashtable<String, String> dict = new Hashtable<>();
     dict.put(INSTANCE_ID_SERVICE_PROPERTY_KEY, instanceId);
+    dict.put(ORGANIZATION_ID_SERVICE_PROPERTY_KEY, organization);
 
     // Instantiate this LDAP instance and register it as such
 
