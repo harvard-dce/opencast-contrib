@@ -376,6 +376,7 @@ public class LdapUserProviderFactory implements ManagedServiceFactory {
           throw new NotFoundException("Multiple organizations exist but none is specified");
         }
         org = orgDirectory.getOrganizations().get(0);
+        organization = org.getId();
       }
     } catch (NotFoundException e) {
       throw new ConfigurationException(ORGANIZATION_KEY, "no organization with configured id", e);
