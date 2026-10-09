@@ -110,7 +110,12 @@ public final class MetadataJson {
   private static <T> JsonElement valueToJson(final T rawValue, final MetadataField.Type type, final String pattern) {
     switch (type) {
       case BOOLEAN:
-        return rawValue == null ? new JsonPrimitive("") : new JsonPrimitive(rawValue.toString());
+        if (rawValue == null) {
+          return new JsonPrimitive("");
+        }
+        return rawValue instanceof Boolean
+            ? new JsonPrimitive((Boolean) rawValue)
+            : new JsonPrimitive(rawValue.toString());
 
       case DATE: {
         if (rawValue == null) {
